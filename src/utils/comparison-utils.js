@@ -17,6 +17,22 @@ class SeededRandom {
 }
 
 /**
+ * Get related comparisons (10 random, excluding the current one)
+ */
+export function getRelatedComparisons(currentComp, allComparisons, count = 10) {
+    const filtered = allComparisons.filter(comp => comp.id !== currentComp.id);
+    
+    // Shuffle using Fisher-Yates algorithm
+    const shuffled = [...filtered];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    
+    return shuffled.slice(0, count);
+}
+
+/**
  * Generate random comparison pairs with seeded randomness
  * @param {Array} items - Array of items to compare
  * @param {number} count - Number of comparisons to generate
@@ -128,11 +144,45 @@ export function extractNumericValue(value) {
 }
 
 /**
- * Format spec value for display
+ * Format spec value for display with proper spacing for list items
  */
 export function formatSpecValue(value) {
     if (!value) return 'N/A';
-    return value.toString();
+    
+    const str = value.toString();
+    
+    // Handle list-like values: split by certain patterns and rejoin with line breaks
+    // Pattern: values that start with - or contain multiple similar items without proper spacing
+    
+    // If it starts with "- ", it's a list
+    if (str.includes('- ')) {
+        // Split by "- " and filter empty items
+        const items = str.split('- ').filter(item => item.trim());
+        if (items.length > 1) {
+            return items.map(item => item.trim()).join('<br />');
+        }
+    }
+    
+    // Check for common patterns without proper spacing (like "175W150W140W" or "Intel Core 3 100UIntel Core 5 120U")
+    // Look for patterns where a unit/value is directly followed by another item
+    const unitPatterns = [
+        { pattern: /([0-9]+)(W)([0-9]+W)/, replacement: '$1$2<br />$3' }, // 175W150W -> 175W<br />150W
+        { pattern: /([UGMK]B)([A-Z])/g, replacement: '$1<br />$2' }, // 8GB8GB -> 8GB<br />8GB
+        { pattern: /([UH])([A-Z][a-z])/g, replacement: '$1<br />$2' }, // 100UIntel -> 100U<br />Intel
+        { pattern: /([UH])([A-Z][a-z])/g, replacement: '$1<br />$2' }, // for CPU models
+    ];
+    
+    let result = str;
+    for (const { pattern, replacement } of unitPatterns) {
+        result = result.replace(pattern, replacement);
+    }
+    
+    // If we found replacements, use the new result
+    if (result !== str) {
+        return result;
+    }
+    
+    return str;
 }
 
 /**

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Laptop Sitemaps -->
+  <sitemap>
+    <loc>https://benchmarks.thelaptops.shop/sitemaps/laptops-models-sitemap.xml</loc>
+  </sitemap>
+  <sitemap>
+    <loc>https://benchmarks.thelaptops.shop/sitemaps/laptops-brands-sitemap.xml</loc>
+  </sitemap>
+  <sitemap>
+    <loc>https://benchmarks.thelaptops.shop/sitemaps/laptops-series-sitemap.xml</loc>
+  </sitemap>
+  
+  <!-- CPU Sitemaps -->
+  <sitemap>
+    <loc>https://benchmarks.thelaptops.shop/sitemaps/cpu-models-sitemap.xml</loc>
+  </sitemap>
+  <sitemap>
+    <loc>https://benchmarks.thelaptops.shop/sitemaps/cpu-brands-sitemap.xml</loc>
+  </sitemap>
+  <sitemap>
+    <loc>https://benchmarks.thelaptops.shop/sitemaps/cpu-series-sitemap.xml</loc>
+  </sitemap>
+  
+  <!-- GPU Sitemaps -->
+  <sitemap>
+    <loc>https://benchmarks.thelaptops.shop/sitemaps/gpu-models-sitemap.xml</loc>
+  </sitemap>
+  <sitemap>
+    <loc>https://benchmarks.thelaptops.shop/sitemaps/gpu-brands-sitemap.xml</loc>
+  </sitemap>
+  <sitemap>
+    <loc>https://benchmarks.thelaptops.shop/sitemaps/gpu-series-sitemap.xml</loc>
+  </sitemap>
+  
+  <!-- Comparison Sitemaps -->
+  <sitemap>
+    <loc>https://benchmarks.thelaptops.shop/sitemaps/laptops-compare.xml</loc>
+  </sitemap>
+  <sitemap>
+    <loc>https://benchmarks.thelaptops.shop/sitemaps/cpu-compare.xml</loc>
+  </sitemap>
+  <sitemap>
+    <loc>https://benchmarks.thelaptops.shop/sitemaps/gpu-compare.xml</loc>
+  </sitemap>
+</sitemapindex>

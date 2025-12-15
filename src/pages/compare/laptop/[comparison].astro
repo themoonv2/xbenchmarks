@@ -1,7 +1,9 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
 import laptopsData from '../../../data/laptops.json';
-import { getLaptopComparisons, determineWinner, getWinnerClass, getImageUrl } from '../../../utils/comparison-utils';
+import cpusData from '../../../data/cpus.json';
+import gpusData from '../../../data/gpus.json';
+import { getLaptopComparisons, getRelatedComparisons, determineWinner, getWinnerClass, getImageUrl, formatSpecValue } from '../../../utils/comparison-utils';
 
 export async function getStaticPaths() {
 	const comparisons = getLaptopComparisons();
@@ -21,6 +23,28 @@ if (!comp) {
 const laptop1 = comp.model1;
 const laptop2 = comp.model2;
 
+// Get related comparisons
+const allComparisons = getLaptopComparisons();
+const relatedComparisons = getRelatedComparisons(comp, allComparisons, 10);
+
+// Build the H1 title with screen size if available
+let h1Title = `${laptop1.name} vs ${laptop2.name}`;
+const display1 = laptop1.specs?.Display || '';
+const display2 = laptop2.specs?.Display || '';
+const screenSize1 = display1.match(/(\d+\.?\d*)"/)?.[1] || '';
+const screenSize2 = display2.match(/(\d+\.?\d*)"/)?.[1] || '';
+
+if (screenSize1 && screenSize2) {
+	if (screenSize1 === screenSize2) {
+		h1Title = `${laptop1.name} vs ${laptop2.name} (${screenSize1}″)`;
+	} else {
+		h1Title = `${laptop1.name} (${screenSize1}″) vs ${laptop2.name} (${screenSize2}″)`;
+	}
+} else if (screenSize1 || screenSize2) {
+	if (screenSize1) h1Title = `${laptop1.name} (${screenSize1}″) vs ${laptop2.name}`;
+	else h1Title = `${laptop1.name} vs ${laptop2.name} (${screenSize2}″)`;
+}
+
 // Dynamically get all available scores and specs
 const allScoreKeys = new Set([
 	...Object.keys(laptop1.scores || {}),
@@ -31,21 +55,48 @@ const allSpecKeys = new Set([
 	...Object.keys(laptop1.specs || {}),
 	...Object.keys(laptop2.specs || {})
 ]);
+
+// Helper function to create CPU/GPU model link
+function getCPULink(cpuName) {
+	const cpu = cpusData.find(c => c.name.toLowerCase() === cpuName.toLowerCase().trim());
+	if (cpu) {
+		const parts = cpu.slug.split('-');
+		return `${import.meta.env.BASE_URL}/cpus/${parts[0]}/${parts[1]}/${cpu.slug}`;
+	}
+	return null;
+}
+
+function getGPULink(gpuName) {
+	const gpu = gpusData.find(g => g.name.toLowerCase() === gpuName.toLowerCase().trim());
+	if (gpu) {
+		const parts = gpu.slug.split('-');
+		return `${import.meta.env.BASE_URL}/gpus/${parts[0]}/${parts[1]}/${gpu.slug}`;
+	}
+	return null;
+}
+
+// Parse CPU and GPU specs to create formatted lists with links
+function formatComponentList(componentStr, isGPU = false) {
+	if (!componentStr) return 'N/A';
+	
+	const str = componentStr.toString();
+	// Remove leading "- " if present
+	let content = str.replace(/^-\s*/, '').trim();
+	
+	// Split by various patterns
+	const items = content.split(/[\n\t]+/).filter(item => item.trim());
+	
+	if (items.length === 0) return str;
+	if (items.length === 1) return items[0];
+	
+	return items;
+}
 ---
 
 <Layout title={`${laptop1.name} vs ${laptop2.name} | XBenchmarks`}>
 	<div class="comparison-container">
 		<div class="comparison-header">
-			<h1 class="page-title">Laptop Comparison</h1>
-			<p class="breadcrumb-text">
-				<a href={`${import.meta.env.BASE_URL}/compare`}>Compare</a> /
-				<a href={`${import.meta.env.BASE_URL}/compare/laptop`}>Laptops</a> /
-				<span>
-					<a href={`${import.meta.env.BASE_URL}/laptop-brands/${laptop1.slug.split('-')[0]}`}>{laptop1.name}</a>
-					vs
-					<a href={`${import.meta.env.BASE_URL}/laptop-brands/${laptop2.slug.split('-')[0]}`}>{laptop2.name}</a>
-				</span>
-			</p>
+			<h1 class="page-title">{h1Title}</h1>
 		</div>
 
 		<!-- Laptops Header Section - Side by Side -->
@@ -129,18 +180,89 @@ const allSpecKeys = new Set([
 						const spec1 = laptop1.specs?.[key];
 						const spec2 = laptop2.specs?.[key];
 						const winner = determineWinner(spec1, spec2, key);
+						
+						// Special handling for CPU and GPU specs
+						const isCPU = key === 'CPU' || key === 'Processor';
+						const isGPU = key === 'GPU' || key === 'Graphics';
+						
+						let formatted1 = spec1 !== undefined ? spec1 : 'N/A';
+						let formatted2 = spec2 !== undefined ? spec2 : 'N/A';
+						
+						if (isCPU || isGPU) {
+							// Parse and format with links
+							const parseList = (val) => {
+								if (!val) return [];
+								const str = val.toString().replace(/^-\s*/, '').trim();
+								return str.split(/[\n\t]+/).filter(item => item.trim());
+							};
+							
+							const items1 = parseList(spec1);
+							const items2 = parseList(spec2);
+							
+							formatted1 = items1.length > 0 ? items1 : 'N/A';
+							formatted2 = items2.length > 0 ? items2 : 'N/A';
+						} else {
+							// Use formatSpecValue for proper spacing
+							formatted1 = formatSpecValue(spec1);
+							formatted2 = formatSpecValue(spec2);
+						}
+						
 						return (
 							<div class="table-row">
 								<div class="metric-col">{key}</div>
 								<div class={`value-col ${winner === 1 ? 'winner-left' : winner === 2 ? 'winner-right' : ''}`}>
-									{spec1 !== undefined ? spec1 : 'N/A'}
+									{Array.isArray(formatted1) ? (
+										<div class="component-list">
+											{formatted1.map((item, idx) => {
+												const link = isCPU ? getCPULink(item) : isGPU ? getGPULink(item) : null;
+												return (
+													<div key={idx} class="component-item">
+														{link ? <a href={link}>{item}</a> : item}
+													</div>
+												);
+											})}
+										</div>
+									) : (
+										<Fragment set:html={formatted1} />
+									)}
 								</div>
 								<div class={`value-col ${winner === 2 ? 'winner-left' : winner === 1 ? 'winner-right' : ''}`}>
-									{spec2 !== undefined ? spec2 : 'N/A'}
+									{Array.isArray(formatted2) ? (
+										<div class="component-list">
+											{formatted2.map((item, idx) => {
+												const link = isCPU ? getCPULink(item) : isGPU ? getGPULink(item) : null;
+												return (
+													<div key={idx} class="component-item">
+														{link ? <a href={link}>{item}</a> : item}
+													</div>
+												);
+											})}
+										</div>
+									) : (
+										<Fragment set:html={formatted2} />
+									)}
 								</div>
 							</div>
 						);
 					})}
+				</div>
+			</section>
+		)}
+
+		<!-- Related Comparisons -->
+		{relatedComparisons.length > 0 && (
+			<section class="comparison-section related-section">
+				<h2 class="section-title">Related Laptop Comparisons</h2>
+				<div class="related-comparisons-grid">
+					{relatedComparisons.slice(0, 10).map(rel => (
+						<a href={`${import.meta.env.BASE_URL}/compare/laptop/${rel.id}`} class="related-comparison-card">
+							<div class="related-item">
+								<span class="item-name">{rel.model1.name}</span>
+								<span class="vs">vs</span>
+								<span class="item-name">{rel.model2.name}</span>
+							</div>
+						</a>
+					))}
 				</div>
 			</section>
 		)}
@@ -164,20 +286,6 @@ const allSpecKeys = new Set([
 		margin-bottom: 0.5rem;
 	}
 
-	.breadcrumb-text {
-		color: var(--text-secondary, #666);
-		font-size: 0.95rem;
-	}
-
-	.breadcrumb-text a {
-		color: var(--primary-color, #007bff);
-		text-decoration: none;
-	}
-
-	.breadcrumb-text a:hover {
-		text-decoration: underline;
-	}
-
 	.comparison-header-section {
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
@@ -195,6 +303,10 @@ const allSpecKeys = new Set([
 		padding: 2rem;
 		border-radius: 12px;
 		border: 1px solid var(--border-color, #eee);
+	}
+
+	.related-section {
+		background: var(--card-bg, #fff);
 	}
 
 	.laptop-card {
@@ -301,6 +413,73 @@ const allSpecKeys = new Set([
 		color: var(--text-primary, #1a1a1a);
 	}
 
+	.component-list {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	.component-item {
+		display: block;
+		padding: 0.25rem 0;
+	}
+
+	.component-item a {
+		color: var(--primary-color, #007bff);
+		text-decoration: none;
+	}
+
+	.component-item a:hover {
+		text-decoration: underline;
+	}
+
+	.related-comparisons-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+		gap: 1rem;
+	}
+
+	.related-comparison-card {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 1.5rem;
+		background: var(--section-bg, #f8f9fa);
+		border: 1px solid var(--border-color, #eee);
+		border-radius: 8px;
+		text-decoration: none;
+		transition: all 0.3s ease;
+	}
+
+	.related-comparison-card:hover {
+		background: var(--primary-color, #007bff);
+		color: white;
+		border-color: var(--primary-color, #007bff);
+	}
+
+	.related-item {
+		text-align: center;
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	.item-name {
+		font-weight: 600;
+		font-size: 0.95rem;
+		word-break: break-word;
+	}
+
+	.vs {
+		font-size: 0.85rem;
+		color: var(--text-secondary, #666);
+		font-weight: 500;
+	}
+
+	.related-comparison-card:hover .vs {
+		color: rgba(255, 255, 255, 0.8);
+	}
+
 	@media (max-width: 768px) {
 		.comparison-header-section {
 			grid-template-columns: 1fr;
@@ -318,6 +497,10 @@ const allSpecKeys = new Set([
 
 		.page-title {
 			font-size: 1.75rem;
+		}
+
+		.related-comparisons-grid {
+			grid-template-columns: 1fr;
 		}
 	}
 </style>
