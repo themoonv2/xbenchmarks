@@ -3,6 +3,5 @@ import { defineConfig } from 'astro/config';
 
 // https://astro.build/config
 export default defineConfig({
-    site: 'https://diaaab.github.io',
-    base: '/xbenchmarks',
+    site: 'https://benchmarks.thelaptops.shop',
 });
