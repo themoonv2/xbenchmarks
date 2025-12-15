@@ -1,4 +1,3 @@
----
 import laptopsData from '../../data/laptops.json';
 
 export const prerender = true;

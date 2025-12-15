@@ -1,4 +1,3 @@
----
 import { getCPUComparisons } from '../../utils/comparison-utils';
 
 export const prerender = true;

@@ -1,4 +1,3 @@
----
 import cpusData from '../../data/cpus.json';
 
 export const prerender = true;

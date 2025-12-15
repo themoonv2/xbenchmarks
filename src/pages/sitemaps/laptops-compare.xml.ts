@@ -1,4 +1,3 @@
----
 import { getLaptopComparisons } from '../../utils/comparison-utils';
 
 export const prerender = true;

@@ -1,4 +1,3 @@
----
 import { getGPUComparisons } from '../../utils/comparison-utils';
 
 export const prerender = true;

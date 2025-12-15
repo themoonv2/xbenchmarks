@@ -1,4 +1,3 @@
----
 import gpusData from '../../data/gpus.json';
 
 export const prerender = true;
