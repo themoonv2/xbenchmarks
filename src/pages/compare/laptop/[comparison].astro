@@ -1,0 +1,323 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import laptopsData from '../../../data/laptops.json';
+import { getLaptopComparisons, determineWinner, getWinnerClass, getImageUrl } from '../../../utils/comparison-utils';
+
+export async function getStaticPaths() {
+	const comparisons = getLaptopComparisons();
+	return comparisons.map(comp => ({
+		params: { comparison: comp.id },
+		props: { comp }
+	}));
+}
+
+const { comparison } = Astro.params;
+const { comp } = Astro.props;
+
+if (!comp) {
+	return Astro.redirect('/compare/laptop');
+}
+
+const laptop1 = comp.model1;
+const laptop2 = comp.model2;
+
+// Dynamically get all available scores and specs
+const allScoreKeys = new Set([
+	...Object.keys(laptop1.scores || {}),
+	...Object.keys(laptop2.scores || {})
+]);
+
+const allSpecKeys = new Set([
+	...Object.keys(laptop1.specs || {}),
+	...Object.keys(laptop2.specs || {})
+]);
+---
+
+<Layout title={`${laptop1.name} vs ${laptop2.name} | XBenchmarks`}>
+	<div class="comparison-container">
+		<div class="comparison-header">
+			<h1 class="page-title">Laptop Comparison</h1>
+			<p class="breadcrumb-text">
+				<a href={`${import.meta.env.BASE_URL}/compare`}>Compare</a> /
+				<a href={`${import.meta.env.BASE_URL}/compare/laptop`}>Laptops</a> /
+				<span>
+					<a href={`${import.meta.env.BASE_URL}/laptop-brands/${laptop1.slug.split('-')[0]}`}>{laptop1.name}</a>
+					vs
+					<a href={`${import.meta.env.BASE_URL}/laptop-brands/${laptop2.slug.split('-')[0]}`}>{laptop2.name}</a>
+				</span>
+			</p>
+		</div>
+
+		<!-- Laptops Header Section - Side by Side -->
+		<section class="comparison-header-section">
+			<div class="laptop-card">
+				<img 
+					src={getImageUrl(laptop1.images?.main, import.meta.env.BASE_URL)} 
+					alt={laptop1.name}
+					class="laptop-image"
+				/>
+				<h2 class="laptop-name">
+					<a href={`${import.meta.env.BASE_URL}/laptop-brands/${laptop1.slug.split('-')[0]}/${laptop1.slug.split('-')[1]}/${laptop1.slug}`}>
+						{laptop1.name}
+					</a>
+				</h2>
+				<div class="laptop-meta">
+					<span class="price">${laptop1.price || 'N/A'}</span>
+					{laptop1.specs?.Released && <span class="released">{laptop1.specs.Released}</span>}
+				</div>
+			</div>
+
+			<div class="laptop-card">
+				<img 
+					src={getImageUrl(laptop2.images?.main, import.meta.env.BASE_URL)} 
+					alt={laptop2.name}
+					class="laptop-image"
+				/>
+				<h2 class="laptop-name">
+					<a href={`${import.meta.env.BASE_URL}/laptop-brands/${laptop2.slug.split('-')[0]}/${laptop2.slug.split('-')[1]}/${laptop2.slug}`}>
+						{laptop2.name}
+					</a>
+				</h2>
+				<div class="laptop-meta">
+					<span class="price">${laptop2.price || 'N/A'}</span>
+					{laptop2.specs?.Released && <span class="released">{laptop2.specs.Released}</span>}
+				</div>
+			</div>
+		</section>
+
+		<!-- Score Comparison -->
+		{allScoreKeys.size > 0 && (
+			<section class="comparison-section">
+				<h2 class="section-title">Performance Scores</h2>
+				<div class="comparison-table">
+					<div class="table-header">
+						<div class="metric-col">Metric</div>
+						<div class="value-col">{laptop1.name}</div>
+						<div class="value-col">{laptop2.name}</div>
+					</div>
+					{Array.from(allScoreKeys).sort().map(key => {
+						const score1 = laptop1.scores?.[key];
+						const score2 = laptop2.scores?.[key];
+						const winner = determineWinner(score1, score2, key);
+						return (
+							<div class="table-row">
+								<div class="metric-col">{key}</div>
+								<div class={`value-col ${winner === 1 ? 'winner-left' : winner === 2 ? 'winner-right' : ''}`}>
+									{score1 !== undefined ? (typeof score1 === 'number' ? score1.toFixed(2) : score1) : 'N/A'}
+								</div>
+								<div class={`value-col ${winner === 2 ? 'winner-left' : winner === 1 ? 'winner-right' : ''}`}>
+									{score2 !== undefined ? (typeof score2 === 'number' ? score2.toFixed(2) : score2) : 'N/A'}
+								</div>
+							</div>
+						);
+					})}
+				</div>
+			</section>
+		)}
+
+		<!-- Specifications Comparison -->
+		{allSpecKeys.size > 0 && (
+			<section class="comparison-section">
+				<h2 class="section-title">Specifications</h2>
+				<div class="comparison-table">
+					<div class="table-header">
+						<div class="metric-col">Specification</div>
+						<div class="value-col">{laptop1.name}</div>
+						<div class="value-col">{laptop2.name}</div>
+					</div>
+					{Array.from(allSpecKeys).sort().map(key => {
+						const spec1 = laptop1.specs?.[key];
+						const spec2 = laptop2.specs?.[key];
+						const winner = determineWinner(spec1, spec2, key);
+						return (
+							<div class="table-row">
+								<div class="metric-col">{key}</div>
+								<div class={`value-col ${winner === 1 ? 'winner-left' : winner === 2 ? 'winner-right' : ''}`}>
+									{spec1 !== undefined ? spec1 : 'N/A'}
+								</div>
+								<div class={`value-col ${winner === 2 ? 'winner-left' : winner === 1 ? 'winner-right' : ''}`}>
+									{spec2 !== undefined ? spec2 : 'N/A'}
+								</div>
+							</div>
+						);
+					})}
+				</div>
+			</section>
+		)}
+	</div>
+</Layout>
+
+<style>
+	.comparison-container {
+		max-width: 1200px;
+		margin: 0 auto;
+		padding: 2rem;
+	}
+
+	.comparison-header {
+		margin-bottom: 3rem;
+	}
+
+	.page-title {
+		font-size: 2.5rem;
+		font-weight: 700;
+		margin-bottom: 0.5rem;
+	}
+
+	.breadcrumb-text {
+		color: var(--text-secondary, #666);
+		font-size: 0.95rem;
+	}
+
+	.breadcrumb-text a {
+		color: var(--primary-color, #007bff);
+		text-decoration: none;
+	}
+
+	.breadcrumb-text a:hover {
+		text-decoration: underline;
+	}
+
+	.comparison-header-section {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+		gap: 2rem;
+		margin-bottom: 3rem;
+		padding: 2rem;
+		background: var(--card-bg, #fff);
+		border-radius: 12px;
+		border: 1px solid var(--border-color, #eee);
+	}
+
+	.comparison-section {
+		margin-bottom: 3rem;
+		background: var(--card-bg, #fff);
+		padding: 2rem;
+		border-radius: 12px;
+		border: 1px solid var(--border-color, #eee);
+	}
+
+	.laptop-card {
+		text-align: center;
+		padding: 1.5rem;
+		background: var(--section-bg, #f8f9fa);
+		border-radius: 8px;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+
+	.laptop-image {
+		width: 250px;
+		height: 250px;
+		object-fit: contain;
+		margin-bottom: 1rem;
+	}
+
+	.laptop-name {
+		font-size: 1.3rem;
+		margin: 1rem 0;
+	}
+
+	.laptop-name a {
+		color: var(--text-primary, #1a1a1a);
+		text-decoration: none;
+	}
+
+	.laptop-name a:hover {
+		color: var(--primary-color, #007bff);
+	}
+
+	.laptop-meta {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		font-size: 0.9rem;
+		color: var(--text-secondary, #666);
+	}
+
+	.price {
+		font-weight: 600;
+		color: var(--primary-color, #007bff);
+	}
+
+	.released {
+		font-size: 0.85rem;
+		color: var(--text-secondary, #666);
+	}
+
+	.section-title {
+		font-size: 1.5rem;
+		font-weight: 600;
+		margin-bottom: 1.5rem;
+		color: var(--text-primary, #1a1a1a);
+	}
+
+	.comparison-table {
+		display: flex;
+		flex-direction: column;
+		border: 1px solid var(--border-color, #eee);
+		border-radius: 8px;
+		overflow: hidden;
+	}
+
+	.table-header,
+	.table-row {
+		display: grid;
+		grid-template-columns: 1fr 1fr 1fr;
+		border-bottom: 1px solid var(--border-color, #eee);
+	}
+
+	.table-row:last-child {
+		border-bottom: none;
+	}
+
+	.table-header {
+		background: var(--section-bg, #f8f9fa);
+		font-weight: 600;
+		color: var(--text-primary, #1a1a1a);
+		border-bottom: 2px solid var(--border-color, #ddd);
+	}
+
+	.metric-col {
+		padding: 1rem;
+		text-align: left;
+		font-weight: 500;
+	}
+
+	.table-header .metric-col {
+		font-weight: 600;
+	}
+
+	.value-col {
+		padding: 1rem;
+		word-break: break-word;
+		transition: background 0.2s ease;
+	}
+
+	.value-col.winner-left,
+	.value-col.winner-right {
+		background: rgba(76, 175, 80, 0.1);
+		color: var(--text-primary, #1a1a1a);
+	}
+
+	@media (max-width: 768px) {
+		.comparison-header-section {
+			grid-template-columns: 1fr;
+		}
+
+		.table-header,
+		.table-row {
+			grid-template-columns: 1fr;
+		}
+
+		.metric-col {
+			font-weight: 600;
+			background: var(--section-bg, #f8f9fa);
+		}
+
+		.page-title {
+			font-size: 1.75rem;
+		}
+	}
+</style>

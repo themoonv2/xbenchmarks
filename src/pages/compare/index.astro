@@ -1,0 +1,230 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+const title = 'Compare Components & Laptops';
+const description = 'Compare CPUs, GPUs, and Laptops side by side to find the best choice for your needs.';
+---
+
+<Layout title={title}>
+	<div class="compare-container">
+		<h1 class="page-title">Component Comparisons</h1>
+		<p class="page-description">
+			Compare processors, graphics cards, and laptops side by side. Get detailed specs, performance metrics, and instant winner analysis.
+		</p>
+
+		<div class="compare-modules">
+			<!-- CPU Comparison Module -->
+			<a href={`${import.meta.env.BASE_URL}/compare/cpu`} class="compare-card cpu-card">
+				<div class="card-header">
+					<svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+						<rect x="4" y="4" width="16" height="16" rx="2" stroke-width="2"/>
+						<path d="M9 9h6v6H9z" stroke-width="2"/>
+						<path d="M9 4v-1M15 4v-1M9 20v1M15 20v1M4 9h-1M4 15h-1M20 9h1M20 15h1" stroke-width="2"/>
+					</svg>
+					<h2>CPU Comparisons</h2>
+				</div>
+				<p class="card-desc">Compare laptop and desktop processors</p>
+				<div class="card-stats">
+					<span class="stat">500+ comparisons</span>
+					<span class="stat">Latest benchmarks</span>
+				</div>
+				<span class="arrow">&rarr;</span>
+			</a>
+
+			<!-- GPU Comparison Module -->
+			<a href={`${import.meta.env.BASE_URL}/compare/gpu`} class="compare-card gpu-card">
+				<div class="card-header">
+					<svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+						<rect x="2" y="3" width="20" height="14" rx="2" stroke-width="2"/>
+						<path d="M2 17h20v2H2zM6 14v3M10 14v3M14 14v3M18 14v3" stroke-width="2"/>
+					</svg>
+					<h2>GPU Comparisons</h2>
+				</div>
+				<p class="card-desc">Compare graphics cards and iGPUs</p>
+				<div class="card-stats">
+					<span class="stat">500+ comparisons</span>
+					<span class="stat">Gaming & compute</span>
+				</div>
+				<span class="arrow">&rarr;</span>
+			</a>
+
+			<!-- Laptop Comparison Module -->
+			<a href={`${import.meta.env.BASE_URL}/compare/laptop`} class="compare-card laptop-card">
+				<div class="card-header">
+					<svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+						<rect x="2" y="3" width="20" height="14" rx="1" stroke-width="2"/>
+						<path d="M2 17h20M6 20h12" stroke-width="2"/>
+					</svg>
+					<h2>Laptop Comparisons</h2>
+				</div>
+				<p class="card-desc">Compare entire laptop models</p>
+				<div class="card-stats">
+					<span class="stat">500+ comparisons</span>
+					<span class="stat">Full specs</span>
+				</div>
+				<span class="arrow">&rarr;</span>
+			</a>
+		</div>
+
+		<div class="features-section">
+			<h2>Comparison Features</h2>
+			<ul class="features-list">
+				<li>✓ Side-by-side spec comparison</li>
+				<li>✓ Automatic winner detection</li>
+				<li>✓ Color-coded performance metrics</li>
+				<li>✓ Internal product linking</li>
+				<li>✓ Multi-category benchmarks</li>
+				<li>✓ Real-time score comparison</li>
+			</ul>
+		</div>
+	</div>
+</Layout>
+
+<style>
+	.compare-container {
+		max-width: 1200px;
+		margin: 0 auto;
+		padding: 2rem;
+	}
+
+	.page-title {
+		font-size: 2.5rem;
+		font-weight: 700;
+		margin-bottom: 1rem;
+		color: var(--text-primary, #1a1a1a);
+	}
+
+	.page-description {
+		font-size: 1.1rem;
+		color: var(--text-secondary, #666);
+		margin-bottom: 3rem;
+		line-height: 1.6;
+	}
+
+	.compare-modules {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+		gap: 2rem;
+		margin-bottom: 4rem;
+	}
+
+	.compare-card {
+		display: flex;
+		flex-direction: column;
+		padding: 2rem;
+		border-radius: 12px;
+		background: var(--card-bg, #fff);
+		border: 1px solid var(--border-color, #eee);
+		text-decoration: none;
+		color: inherit;
+		transition: all 0.3s ease;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+	}
+
+	.compare-card:hover {
+		transform: translateY(-4px);
+		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+		border-color: var(--primary-color, #007bff);
+	}
+
+	.card-header {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		margin-bottom: 1rem;
+	}
+
+	.card-icon {
+		width: 48px;
+		height: 48px;
+		color: var(--primary-color, #007bff);
+		flex-shrink: 0;
+	}
+
+	.card-header h2 {
+		font-size: 1.5rem;
+		font-weight: 600;
+		margin: 0;
+	}
+
+	.card-desc {
+		color: var(--text-secondary, #666);
+		margin: 0.5rem 0 1rem 0;
+		font-size: 0.95rem;
+	}
+
+	.card-stats {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		margin: 1rem 0;
+		font-size: 0.9rem;
+		color: var(--text-secondary, #666);
+	}
+
+	.stat {
+		display: inline-block;
+	}
+
+	.stat::before {
+		content: '◆ ';
+		color: var(--primary-color, #007bff);
+		margin-right: 0.5rem;
+	}
+
+	.arrow {
+		align-self: flex-end;
+		font-size: 1.5rem;
+		margin-top: auto;
+		color: var(--primary-color, #007bff);
+		transition: transform 0.3s ease;
+	}
+
+	.compare-card:hover .arrow {
+		transform: translateX(4px);
+	}
+
+	.features-section {
+		background: var(--section-bg, #f8f9fa);
+		padding: 3rem 2rem;
+		border-radius: 12px;
+		margin-top: 3rem;
+	}
+
+	.features-section h2 {
+		font-size: 1.8rem;
+		margin-bottom: 2rem;
+		color: var(--text-primary, #1a1a1a);
+	}
+
+	.features-list {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+		gap: 1.5rem;
+		list-style: none;
+		padding: 0;
+		margin: 0;
+	}
+
+	.features-list li {
+		font-size: 1rem;
+		color: var(--text-secondary, #666);
+		display: flex;
+		align-items: center;
+	}
+
+	@media (max-width: 768px) {
+		.page-title {
+			font-size: 2rem;
+		}
+
+		.compare-modules {
+			grid-template-columns: 1fr;
+			gap: 1.5rem;
+		}
+
+		.compare-container {
+			padding: 1rem;
+		}
+	}
+</style>

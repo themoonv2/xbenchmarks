@@ -1,0 +1,131 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import { getLaptopComparisons } from '../../../utils/comparison-utils';
+
+const comparisons = getLaptopComparisons();
+---
+
+<Layout title="Laptop Comparisons | XBenchmarks">
+	<h1 class="page-title">Laptop Comparisons</h1>
+	<p class="page-subtitle">Compare entire laptop models side by side with detailed specifications and benchmarks</p>
+
+	<div class="comparisons-grid">
+		{comparisons.map((comp) => (
+			<a 
+				href={`${import.meta.env.BASE_URL}/compare/laptop/${comp.id}`}
+				class="comparison-item"
+			>
+				<div class="comparison-names">
+					<span class="model-name">{comp.model1.name}</span>
+					<span class="vs-text">vs</span>
+					<span class="model-name">{comp.model2.name}</span>
+				</div>
+				<div class="comparison-meta">
+					<span class="score" style={`--score1: ${comp.model1.scores?.['NanoReview Final Score'] || 0}`}>
+						{comp.model1.scores?.['NanoReview Final Score'] || '?'}
+					</span>
+					<span class="score" style={`--score2: ${comp.model2.scores?.['NanoReview Final Score'] || 0}`}>
+						{comp.model2.scores?.['NanoReview Final Score'] || '?'}
+					</span>
+				</div>
+				<span class="arrow">&rarr;</span>
+			</a>
+		))}
+	</div>
+</Layout>
+
+<style>
+	.page-title {
+		font-size: 2.5rem;
+		font-weight: 700;
+		margin-bottom: 0.5rem;
+		color: var(--text-primary, #1a1a1a);
+	}
+
+	.page-subtitle {
+		font-size: 1.1rem;
+		color: var(--text-secondary, #666);
+		margin-bottom: 3rem;
+	}
+
+	.comparisons-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+		gap: 1.5rem;
+	}
+
+	.comparison-item {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 1.5rem;
+		border-radius: 8px;
+		background: var(--card-bg, #fff);
+		border: 1px solid var(--border-color, #eee);
+		text-decoration: none;
+		color: inherit;
+		transition: all 0.2s ease;
+		gap: 1rem;
+	}
+
+	.comparison-item:hover {
+		border-color: var(--primary-color, #007bff);
+		background: var(--hover-bg, #f9f9f9);
+		transform: translateX(4px);
+	}
+
+	.comparison-names {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		flex: 1;
+		min-width: 0;
+	}
+
+	.model-name {
+		font-size: 0.9rem;
+		font-weight: 500;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.vs-text {
+		font-size: 0.75rem;
+		color: var(--text-tertiary, #999);
+		text-align: center;
+	}
+
+	.comparison-meta {
+		display: flex;
+		gap: 1rem;
+		align-items: center;
+	}
+
+	.score {
+		display: inline-block;
+		min-width: 40px;
+		padding: 0.5rem;
+		text-align: center;
+		border-radius: 4px;
+		background: linear-gradient(to right, #f093fb, #f5576c);
+		color: white;
+		font-weight: 600;
+		font-size: 0.9rem;
+	}
+
+	.arrow {
+		color: var(--primary-color, #007bff);
+		font-size: 1.2rem;
+	}
+
+	@media (max-width: 768px) {
+		.comparisons-grid {
+			grid-template-columns: 1fr;
+		}
+
+		.page-title {
+			font-size: 1.8rem;
+		}
+	}
+</style>

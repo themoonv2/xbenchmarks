@@ -1,0 +1,324 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import cpusData from '../../../data/cpus.json';
+import { getCPUComparisons, determineWinner, getWinnerClass, getImageUrl } from '../../../utils/comparison-utils';
+
+export async function getStaticPaths() {
+	const comparisons = getCPUComparisons();
+	return comparisons.map(comp => ({
+		params: { comparison: comp.id },
+		props: { comp }
+	}));
+}
+
+const { comparison } = Astro.params;
+const { comp } = Astro.props;
+
+if (!comp) {
+	return Astro.redirect('/compare/cpu');
+}
+
+const cpu1 = comp.model1;
+const cpu2 = comp.model2;
+
+// Get all score keys from both CPUs
+const allScoreKeys = new Set([
+	...Object.keys(cpu1.scores || {}),
+	...Object.keys(cpu2.scores || {})
+]);
+
+// Get all spec keys from both CPUs
+const allSpecKeys = new Set([
+	...Object.keys(cpu1.specs || {}),
+	...Object.keys(cpu2.specs || {})
+]);
+---
+
+<Layout title={`${cpu1.name} vs ${cpu2.name} | XBenchmarks`}>
+	<div class="comparison-container">
+		<div class="comparison-header">
+			<h1 class="page-title">CPU Comparison</h1>
+			<p class="breadcrumb-text">
+				<a href={`${import.meta.env.BASE_URL}/compare`}>Compare</a> /
+				<a href={`${import.meta.env.BASE_URL}/compare/cpu`}>CPUs</a> /
+				<span>{cpu1.name} vs {cpu2.name}</span>
+			</p>
+		</div>
+
+		<!-- Side by Side Header with Images -->
+		<div class="comparison-header-section">
+			<div class="cpu-card">
+				<img 
+					src={getImageUrl(cpu1.images?.main, import.meta.env.BASE_URL)} 
+					alt={cpu1.name}
+					class="cpu-image"
+				/>
+				<h2 class="cpu-name">
+					<a href={`${import.meta.env.BASE_URL}/cpus/${cpu1.slug.split('-')[0]}/${cpu1.slug.split('-')[1]}/${cpu1.slug}`}>
+						{cpu1.name}
+					</a>
+				</h2>
+				<div class="cpu-meta">
+					{cpu1.price && <span class="price">${cpu1.price}</span>}
+				</div>
+			</div>
+
+			<div class="cpu-card">
+				<img 
+					src={getImageUrl(cpu2.images?.main, import.meta.env.BASE_URL)} 
+					alt={cpu2.name}
+					class="cpu-image"
+				/>
+				<h2 class="cpu-name">
+					<a href={`${import.meta.env.BASE_URL}/cpus/${cpu2.slug.split('-')[0]}/${cpu2.slug.split('-')[1]}/${cpu2.slug}`}>
+						{cpu2.name}
+					</a>
+				</h2>
+				<div class="cpu-meta">
+					{cpu2.price && <span class="price">${cpu2.price}</span>}
+				</div>
+			</div>
+		</div>
+
+		<!-- All Scores Section -->
+		<div class="comparison-section">
+			<h3 class="section-title">Performance Scores</h3>
+			<div class="comparison-table">
+				<div class="table-header">
+					<div class="metric-col">Metric</div>
+					<div class="value-col">{cpu1.name}</div>
+					<div class="value-col">{cpu2.name}</div>
+				</div>
+				{Array.from(allScoreKeys).sort().map(key => {
+					const score1 = cpu1.scores?.[key];
+					const score2 = cpu2.scores?.[key];
+					const winner = score1 && score2 ? determineWinner(score1, score2, key) : 0;
+					
+					return (
+						<div class="table-row">
+							<div class="metric-col">{key}</div>
+							<div class={`value-col ${getWinnerClass(winner === 1 ? 1 : winner === 2 ? 2 : 0)}`}>
+								{score1 !== undefined ? score1 : 'N/A'}
+							</div>
+							<div class={`value-col ${getWinnerClass(winner === 2 ? 1 : winner === 1 ? 2 : 0)}`}>
+								{score2 !== undefined ? score2 : 'N/A'}
+							</div>
+						</div>
+					);
+				})}
+			</div>
+		</div>
+
+		<!-- All Specifications Section -->
+		<div class="comparison-section">
+			<h3 class="section-title">Specifications</h3>
+			<div class="comparison-table">
+				<div class="table-header">
+					<div class="metric-col">Specification</div>
+					<div class="value-col">{cpu1.name}</div>
+					<div class="value-col">{cpu2.name}</div>
+				</div>
+				{Array.from(allSpecKeys).sort().map(key => {
+					const spec1 = cpu1.specs?.[key];
+					const spec2 = cpu2.specs?.[key];
+					const winner = spec1 && spec2 ? determineWinner(spec1, spec2, key) : 0;
+					
+					return (
+						<div class="table-row">
+							<div class="metric-col">{key}</div>
+							<div class={`value-col ${getWinnerClass(winner === 1 ? 1 : winner === 2 ? 2 : 0)}`}>
+								{spec1 !== undefined ? spec1 : 'N/A'}
+							</div>
+							<div class={`value-col ${getWinnerClass(winner === 2 ? 1 : winner === 1 ? 2 : 0)}`}>
+								{spec2 !== undefined ? spec2 : 'N/A'}
+							</div>
+						</div>
+					);
+				})}
+			</div>
+		</div>
+	</div>
+</Layout>
+
+<style>
+	.comparison-container {
+		max-width: 1400px;
+		margin: 0 auto;
+		padding: 2rem;
+	}
+
+	.comparison-header {
+		margin-bottom: 2rem;
+	}
+
+	.page-title {
+		font-size: 2.5rem;
+		font-weight: 700;
+		margin-bottom: 0.5rem;
+	}
+
+	.breadcrumb-text {
+		color: var(--text-secondary, #666);
+		font-size: 0.95rem;
+	}
+
+	.breadcrumb-text a {
+		color: var(--primary-color, #007bff);
+		text-decoration: none;
+	}
+
+	.breadcrumb-text a:hover {
+		text-decoration: underline;
+	}
+
+	.comparison-header-section {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+		gap: 2rem;
+		margin-bottom: 3rem;
+		background: var(--card-bg, #fff);
+		padding: 2rem;
+		border-radius: 12px;
+		border: 1px solid var(--border-color, #eee);
+	}
+
+	.cpu-card {
+		text-align: center;
+		padding: 1.5rem;
+		background: var(--section-bg, #f8f9fa);
+		border-radius: 8px;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+
+	.cpu-image {
+		width: 100%;
+		max-width: 250px;
+		height: 250px;
+		object-fit: contain;
+		margin-bottom: 1rem;
+	}
+
+	.cpu-name {
+		font-size: 1.3rem;
+		margin: 1rem 0;
+		word-break: break-word;
+	}
+
+	.cpu-name a {
+		color: var(--text-primary, #1a1a1a);
+		text-decoration: none;
+	}
+
+	.cpu-name a:hover {
+		color: var(--primary-color, #007bff);
+	}
+
+	.cpu-meta {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		font-size: 0.9rem;
+		color: var(--text-secondary, #666);
+	}
+
+	.price {
+		font-weight: 600;
+		color: var(--primary-color, #007bff);
+	}
+
+	.comparison-section {
+		margin-bottom: 3rem;
+		background: var(--card-bg, #fff);
+		padding: 2rem;
+		border-radius: 12px;
+		border: 1px solid var(--border-color, #eee);
+	}
+
+	.section-title {
+		font-size: 1.5rem;
+		font-weight: 600;
+		margin-bottom: 1.5rem;
+		color: var(--text-primary, #1a1a1a);
+	}
+
+	.comparison-table {
+		width: 100%;
+		display: flex;
+		flex-direction: column;
+		border: 1px solid var(--border-color, #eee);
+		border-radius: 8px;
+		overflow: hidden;
+	}
+
+	.table-header,
+	.table-row {
+		display: grid;
+		grid-template-columns: 1fr 1fr 1fr;
+		border-bottom: 1px solid var(--border-color, #eee);
+	}
+
+	.table-header {
+		background: var(--section-bg, #f8f9fa);
+		font-weight: 600;
+		color: var(--text-primary, #1a1a1a);
+	}
+
+	.table-header:last-child {
+		border-bottom: none;
+	}
+
+	.metric-col {
+		padding: 1rem;
+		border-right: 1px solid var(--border-color, #eee);
+		font-weight: 500;
+	}
+
+	.metric-col:last-child {
+		border-right: none;
+	}
+
+	.value-col {
+		padding: 1rem;
+		border-right: 1px solid var(--border-color, #eee);
+		word-break: break-word;
+		transition: background 0.2s ease;
+	}
+
+	.value-col:last-child {
+		border-right: none;
+	}
+
+	.value-col.winner-left,
+	.value-col.winner-right {
+		background: rgba(76, 175, 80, 0.1);
+		color: var(--text-primary, #1a1a1a);
+	}
+
+	.value-col.winner-tie {
+		background: transparent;
+	}
+
+	@media (max-width: 768px) {
+		.comparison-header-section {
+			grid-template-columns: 1fr;
+		}
+
+		.table-header,
+		.table-row {
+			grid-template-columns: 1fr;
+		}
+
+		.metric-col,
+		.value-col {
+			border-right: none !important;
+			border-bottom: 1px solid var(--border-color, #eee);
+		}
+
+		.metric-col {
+			font-weight: 600;
+			background: var(--section-bg, #f8f9fa);
+		}
+	}
+</style>
