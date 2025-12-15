@@ -25,7 +25,7 @@ export function slugify(text) {
         .replace(/-+$/, '');            // Trim - from end of text
 }
 
-export function getImageUrl(imagePath, baseUrl = '/xbenchmarks') {
+export function getImageUrl(imagePath, baseUrl = '') {
     if (!imagePath) return '';
     // If path starts with /, prepend base URL
     if (imagePath.startsWith('/')) {
