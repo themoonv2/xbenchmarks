@@ -245,13 +245,13 @@ function findSpec(key) {
             <div class="brand-links mb-6">
                 <span class="text-muted">Brand: </span>
                 <a
-                    href={`/laptop-brands/${slugify(brand)}`}
+                    href={`/laptop-brands/${slugify(brand)}/`}
                     class="link">{brand}</a
                 >
                 <span class="mx-2">/</span>
                 <span class="text-muted">Series: </span>
                 <a
-                    href={`/laptop-brands/${slugify(brand)}/${slugify(series)}`}
+                    href={`/laptop-brands/${slugify(brand)}/${slugify(series)}/`}
                     class="link">{series}</a
                 >
             </div>
@@ -402,7 +402,7 @@ function findSpec(key) {
                 <div class="grid list-grid">
                     {sameSeries.map((l) => (
                         <a
-                            href={`/laptop-brands/${slugify(getBrand(l.name))}/${slugify(getSeries(l.name))}/${l.slug || slugify(l.name)}`}
+                            href={`/laptop-brands/${slugify(getBrand(l.name))}/${slugify(getSeries(l.name))}/${l.slug || slugify(l.name)}/`}
                             class="mini-card"
                         >
                             <span class="font-medium">{l.name}</span>
@@ -426,7 +426,7 @@ function findSpec(key) {
                 <div class="grid list-grid">
                     {alternatives.map((l) => (
                         <a
-                            href={`/laptop-brands/${slugify(getBrand(l.name))}/${slugify(getSeries(l.name))}/${l.slug || slugify(l.name)}`}
+                            href={`/laptop-brands/${slugify(getBrand(l.name))}/${slugify(getSeries(l.name))}/${l.slug || slugify(l.name)}/`}
                             class="mini-card"
                         >
                             <span class="font-medium">{l.name}</span>
