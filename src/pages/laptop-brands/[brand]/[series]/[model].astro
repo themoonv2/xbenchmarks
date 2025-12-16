@@ -216,7 +216,7 @@ function findSpec(key) {
         <div class="profile-image">
             {
                 laptop.images?.main ? (
-                    <img src={getImageUrl(laptop.images.main, '')} alt={laptop.name} />
+                    <img src={getImageUrl(laptop.images.main)} alt={laptop.name} />
                 ) : (
                     <div class="placeholder-img">No Image</div>
                 )

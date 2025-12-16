@@ -26,10 +26,13 @@ export function slugify(text) {
 }
 
 export function getImageUrl(imagePath, baseUrl = '') {
-    if (!imagePath) return '';
-    // If path starts with /, prepend base URL
+    if (!imagePath) return '/images/placeholder.png';
+    // If it's already an absolute URL, return as-is
+    if (imagePath.startsWith('http')) return imagePath;
+    // If path starts with /, prepend base URL if available
     if (imagePath.startsWith('/')) {
-        return baseUrl + imagePath;
+        return baseUrl ? baseUrl + imagePath : imagePath;
     }
-    return imagePath;
+    // Otherwise, prepend slash and base URL if available
+    return baseUrl ? baseUrl + '/' + imagePath : '/' + imagePath;
 }

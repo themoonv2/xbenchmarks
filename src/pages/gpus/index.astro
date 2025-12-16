@@ -20,7 +20,7 @@ const brands = [...new Set(gpus.map((gpu) => getBrand(gpu.name)))].sort();
                     );
                     return (
                         <a
-                            href={`${import.meta.env.BASE_URL}/gpus/${slugify(brand)}`}
+                            href={`/gpus/${slugify(brand)}/`}
                             class="brand-card"
                         >
                             <h2>{brand}</h2>

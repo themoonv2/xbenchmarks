@@ -20,7 +20,7 @@ const brands = [...new Set(cpus.map((cpu) => getBrand(cpu.name)))].sort();
                     );
                     return (
                         <a
-                            href={`${import.meta.env.BASE_URL}/cpus/${slugify(brand)}`}
+                            href={`/cpus/${slugify(brand)}/`}
                             class="brand-card"
                         >
                             <h2>{brand}</h2>
