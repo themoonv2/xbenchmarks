@@ -11,8 +11,8 @@ const comparisons = getGPUComparisons();
 
 	<div class="comparisons-grid">
 		{comparisons.map((comp) => (
-			<a 
-				href={`${import.meta.env.BASE_URL}/compare/gpu/${comp.id}`}
+			<a
+				href={`/compare/gpu/${comp.id}/`}
 				class="comparison-item"
 			>
 				<div class="comparison-names">

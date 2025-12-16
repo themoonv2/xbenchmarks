@@ -11,8 +11,8 @@ const comparisons = getLaptopComparisons();
 
 	<div class="comparisons-grid">
 		{comparisons.map((comp) => (
-			<a 
-				href={`${import.meta.env.BASE_URL}/compare/laptop/${comp.id}`}
+			<a
+				href={`/compare/laptop/${comp.id}/`}
 				class="comparison-item"
 			>
 				<div class="comparison-names">

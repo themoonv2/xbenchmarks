@@ -147,7 +147,7 @@ const allSpecKeys = new Set([
 				<h2 class="section-title">Related CPU Comparisons</h2>
 				<div class="related-comparisons-grid">
 					{relatedComparisons.slice(0, 10).map(rel => (
-						<a href={`${import.meta.env.BASE_URL}/compare/cpu/${rel.id}`} class="related-comparison-card">
+						<a href={`/compare/cpu/${rel.id}/`} class="related-comparison-card">
 							<div class="related-item">
 								<span class="item-name">{rel.model1.name}</span>
 								<span class="vs">vs</span>
