@@ -118,7 +118,7 @@ const remainingSpecs = Object.entries(gpu.specs || {}).filter(
         <div class="profile-image">
             {
                 gpu.images?.main ? (
-                    <img src={getImageUrl(gpu.images.main, import.meta.env.BASE_URL)} alt={gpu.name} />
+                    <img src={getImageUrl(gpu.images.main)} alt={gpu.name} />
                 ) : (
                     <div class="placeholder-img">No Image</div>
                 )
@@ -150,13 +150,13 @@ const remainingSpecs = Object.entries(gpu.specs || {}).filter(
             <div class="brand-links mb-6">
                 <span class="text-muted">Brand: </span>
                 <a
-                    href={`${import.meta.env.BASE_URL}/gpus/${slugify(getBrand(gpu.name))}`}
+                    href={`/gpus/${slugify(getBrand(gpu.name))}/`}
                     class="link">{getBrand(gpu.name)}</a
                 >
                 <span class="mx-2">/</span>
                 <span class="text-muted">Series: </span>
                 <a
-                    href={`${import.meta.env.BASE_URL}/gpus/${slugify(getBrand(gpu.name))}/${slugify(getSeries(gpu.name))}`}
+                    href={`/gpus/${slugify(getBrand(gpu.name))}/${slugify(getSeries(gpu.name))}/`}
                     class="link">{getSeries(gpu.name)}</a
                 >
             </div>
@@ -269,7 +269,7 @@ const remainingSpecs = Object.entries(gpu.specs || {}).filter(
                         const series = getSeries(l.name);
                         return (
                             <a
-                                href={`${import.meta.env.BASE_URL}/laptop-brands/${slugify(b)}/${slugify(series)}/${s}`}
+                                href={`/laptop-brands/${slugify(b)}/${slugify(series)}/${s}/`}
                                 class="mini-card"
                             >
                                 <span class="font-medium">{l.name}</span>
