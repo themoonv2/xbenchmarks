@@ -23,6 +23,9 @@ if (!comp) {
 const laptop1 = comp.model1;
 const laptop2 = comp.model2;
 
+// Create unique description
+const description = `Compare ${laptop1.name} vs ${laptop2.name} laptop specs, performance, price, and features. Detailed side-by-side comparison to help choose the best laptop.`;
+
 // Get related comparisons
 const allComparisons = getLaptopComparisons();
 const relatedComparisons = getRelatedComparisons(comp, allComparisons, 10);
@@ -93,7 +96,7 @@ function formatComponentList(componentStr, isGPU = false) {
 }
 ---
 
-<Layout title={`${laptop1.name} vs ${laptop2.name} | XBenchmarks`}>
+<Layout title={`${laptop1.name} vs ${laptop2.name} - Laptop Comparison`} description={description}>
 	<div class="comparison-container">
 		<div class="comparison-header">
 			<h1 class="page-title">{h1Title}</h1>
@@ -103,12 +106,12 @@ function formatComponentList(componentStr, isGPU = false) {
 		<section class="comparison-header-section">
 			<div class="laptop-card">
 				<img 
-					src={getImageUrl(laptop1.images?.main, import.meta.env.BASE_URL)} 
+					src={getImageUrl(laptop1.images?.main)} 
 					alt={laptop1.name}
 					class="laptop-image"
 				/>
 				<h2 class="laptop-name">
-					<a href={`${import.meta.env.BASE_URL}/laptop-brands/${laptop1.slug.split('-')[0]}/${laptop1.slug.split('-')[1]}/${laptop1.slug}`}>
+					<a href={`/laptop-brands/${laptop1.slug.split('-')[0]}/${laptop1.slug.split('-')[1]}/${laptop1.slug}/`}>
 						{laptop1.name}
 					</a>
 				</h2>
@@ -120,12 +123,12 @@ function formatComponentList(componentStr, isGPU = false) {
 
 			<div class="laptop-card">
 				<img 
-					src={getImageUrl(laptop2.images?.main, import.meta.env.BASE_URL)} 
+					src={getImageUrl(laptop2.images?.main)} 
 					alt={laptop2.name}
 					class="laptop-image"
 				/>
 				<h2 class="laptop-name">
-					<a href={`${import.meta.env.BASE_URL}/laptop-brands/${laptop2.slug.split('-')[0]}/${laptop2.slug.split('-')[1]}/${laptop2.slug}`}>
+					<a href={`/laptop-brands/${laptop2.slug.split('-')[0]}/${laptop2.slug.split('-')[1]}/${laptop2.slug}/`}>
 						{laptop2.name}
 					</a>
 				</h2>

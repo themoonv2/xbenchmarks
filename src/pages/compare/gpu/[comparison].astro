@@ -21,6 +21,9 @@ if (!comp) {
 const gpu1 = comp.model1;
 const gpu2 = comp.model2;
 
+// Create unique description
+const description = `Compare ${gpu1.name} vs ${gpu2.name} GPU specifications, benchmarks, and performance scores. View gaming performance, VRAM, architecture details and more.`;
+
 // Get related comparisons
 const allComparisons = getGPUComparisons();
 const relatedComparisons = getRelatedComparisons(comp, allComparisons, 10);
@@ -37,7 +40,7 @@ const allSpecKeys = new Set([
 ]);
 ---
 
-<Layout title={`${gpu1.name} vs ${gpu2.name} | XBenchmarks`}>
+<Layout title={`${gpu1.name} vs ${gpu2.name} - GPU Comparison`} description={description}>
 	<div class="comparison-container">
 		<div class="comparison-header">
 			<h1 class="page-title">{gpu1.name} vs {gpu2.name}</h1>
@@ -47,12 +50,12 @@ const allSpecKeys = new Set([
 		<section class="comparison-header-section">
 			<div class="gpu-card">
 				<img 
-					src={getImageUrl(gpu1.images?.main, import.meta.env.BASE_URL)} 
+					src={getImageUrl(gpu1.images?.main)} 
 					alt={gpu1.name}
 					class="gpu-image"
 				/>
 				<h2 class="gpu-name">
-					<a href={`${import.meta.env.BASE_URL}/gpus/${gpu1.slug.split('-')[0]}/${gpu1.slug.split('-')[1]}/${gpu1.slug}`}>
+					<a href={`/gpus/${gpu1.slug.split('-')[0]}/${gpu1.slug.split('-')[1]}/${gpu1.slug}/`}>
 						{gpu1.name}
 					</a>
 				</h2>
@@ -64,12 +67,12 @@ const allSpecKeys = new Set([
 
 			<div class="gpu-card">
 				<img 
-					src={getImageUrl(gpu2.images?.main, import.meta.env.BASE_URL)} 
+					src={getImageUrl(gpu2.images?.main)} 
 					alt={gpu2.name}
 					class="gpu-image"
 				/>
 				<h2 class="gpu-name">
-					<a href={`${import.meta.env.BASE_URL}/gpus/${gpu2.slug.split('-')[0]}/${gpu2.slug.split('-')[1]}/${gpu2.slug}`}>
+					<a href={`/gpus/${gpu2.slug.split('-')[0]}/${gpu2.slug.split('-')[1]}/${gpu2.slug}/`}>
 						{gpu2.name}
 					</a>
 				</h2>

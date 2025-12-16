@@ -32,9 +32,11 @@ brandLaptops.forEach((laptop) => {
 const seriesList = Array.from(seriesMap.entries()).sort((a, b) =>
     a[1].localeCompare(b[1]),
 );
+const laptopCount = brandLaptops.length;
+const description = `Browse ${brandName} laptop series and models. View ${laptopCount}+ computers with detailed specs, processor info, graphics, price and performance benchmarks.`;
 ---
 
-<Layout title={`${brandName} Laptops - Series List`}>
+<Layout title={`${brandName} Laptops - Series & Models`} description={description}>
     <h1>{brandName} Laptops</h1>
     <p>Browse {brandName} laptops by series.</p>
 

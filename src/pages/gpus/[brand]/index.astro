@@ -27,9 +27,11 @@ brandGpus.forEach((gpu) => {
 });
 
 const seriesList = Array.from(seriesMap.values()).sort();
+const gpuCount = brandGpus.length;
+const description = `Browse ${brandName} GPU graphics card series and models. View ${gpuCount}+ graphics processors with detailed specs, gaming benchmarks, VRAM and laptop availability.`;
 ---
 
-<Layout title={`${brandName} GPUs - Series List`}>
+<Layout title={`${brandName} Graphics Cards - GPUs & Models`} description={description}>
     <h1>{brandName} Graphics</h1>
     <p>Select a series to view available models.</p>
 

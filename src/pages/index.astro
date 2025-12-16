@@ -2,7 +2,7 @@
 import Layout from "../layouts/Layout.astro";
 ---
 
-<Layout title="XBenchmarks - Hardware Database">
+<Layout title="XBenchmarks - Hardware Database" description="Comprehensive hardware benchmarking platform. Compare laptops, CPUs, and graphics cards with detailed specs, performance benchmarks, and real-world usage recommendations.">
 	<section class="hero">
 		<h1 aria-label="XBenchmarks">XBenchmarks</h1>
 		<p class="intro" aria-label="XBenchmarks Introduction">
@@ -79,7 +79,7 @@ import Layout from "../layouts/Layout.astro";
 				<span class="arrow">&rarr;</span>
 			</a>
 			<a
-				href={`${import.meta.env.BASE_URL}/compare`}
+				href="/compare/"
 				class="card"
 				aria-label="Component & Laptop Comparisons"
 			>

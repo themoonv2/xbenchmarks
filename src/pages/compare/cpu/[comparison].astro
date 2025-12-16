@@ -21,6 +21,9 @@ if (!comp) {
 const cpu1 = comp.model1;
 const cpu2 = comp.model2;
 
+// Create unique description
+const description = `Compare ${cpu1.name} vs ${cpu2.name} processor specs, benchmarks, and performance metrics. See detailed scoring and determine the best CPU for your needs.`;
+
 // Get related comparisons
 const allComparisons = getCPUComparisons();
 const relatedComparisons = getRelatedComparisons(comp, allComparisons, 10);
@@ -38,7 +41,7 @@ const allSpecKeys = new Set([
 ]);
 ---
 
-<Layout title={`${cpu1.name} vs ${cpu2.name} | XBenchmarks`}>
+<Layout title={`${cpu1.name} vs ${cpu2.name} - CPU Comparison`} description={description}>
 	<div class="comparison-container">
 		<div class="comparison-header">
 			<h1 class="page-title">{cpu1.name} vs {cpu2.name}</h1>
@@ -48,12 +51,12 @@ const allSpecKeys = new Set([
 		<div class="comparison-header-section">
 			<div class="cpu-card">
 				<img 
-					src={getImageUrl(cpu1.images?.main, import.meta.env.BASE_URL)} 
+					src={getImageUrl(cpu1.images?.main)} 
 					alt={cpu1.name}
 					class="cpu-image"
 				/>
 				<h2 class="cpu-name">
-					<a href={`${import.meta.env.BASE_URL}/cpus/${cpu1.slug.split('-')[0]}/${cpu1.slug.split('-')[1]}/${cpu1.slug}`}>
+					<a href={`/cpus/${cpu1.slug.split('-')[0]}/${cpu1.slug.split('-')[1]}/${cpu1.slug}/`}>
 						{cpu1.name}
 					</a>
 				</h2>
@@ -64,12 +67,12 @@ const allSpecKeys = new Set([
 
 			<div class="cpu-card">
 				<img 
-					src={getImageUrl(cpu2.images?.main, import.meta.env.BASE_URL)} 
+					src={getImageUrl(cpu2.images?.main)} 
 					alt={cpu2.name}
 					class="cpu-image"
 				/>
 				<h2 class="cpu-name">
-					<a href={`${import.meta.env.BASE_URL}/cpus/${cpu2.slug.split('-')[0]}/${cpu2.slug.split('-')[1]}/${cpu2.slug}`}>
+					<a href={`/cpus/${cpu2.slug.split('-')[0]}/${cpu2.slug.split('-')[1]}/${cpu2.slug}/`}>
 						{cpu2.name}
 					</a>
 				</h2>

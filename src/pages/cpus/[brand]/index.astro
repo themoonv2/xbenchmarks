@@ -27,9 +27,11 @@ brandCpus.forEach((cpu) => {
 });
 
 const seriesList = Array.from(seriesMap.values()).sort();
+const cpuCount = brandCpus.length;
+const description = `Browse ${brandName} CPU processor series and models. View ${cpuCount}+ processors with detailed specs, benchmarks, performance scores and laptop availability.`;
 ---
 
-<Layout title={`${brandName} CPUs - Series List`}>
+<Layout title={`${brandName} Processors - CPUs & Models`} description={description}>
     <h1>{brandName} Processors</h1>
     <p>Select a series to view available models.</p>
 
