@@ -132,9 +132,14 @@ const topAdvantages = scoreAdvantages.filter(a => a.winner === winner).slice(0, 
 									</div>
 								</div>
 								{num1 && num2 && (
-									<div class="score-bar">
-										<div class="bar-inner" style={`width: ${Math.min(100, (Math.max(num1, num2) / Math.max(num1, num2)) * 100)}%`}></div>
-									</div>
+									<>
+										<div class="score-bar-container">
+											<div class="score-bar" style={`width: ${(num1 / Math.max(num1, num2)) * 100}%`}></div>
+										</div>
+										<div class="score-bar-container">
+											<div class="score-bar" style={`width: ${(num2 / Math.max(num1, num2)) * 100}%`}></div>
+										</div>
+									</>
 								)}
 							</div>
 						);
