@@ -3,7 +3,7 @@ import Layout from '../../../layouts/Layout.astro';
 import laptopsData from '../../../data/laptops.json';
 import cpusData from '../../../data/cpus.json';
 import gpusData from '../../../data/gpus.json';
-import { getLaptopComparisons, getRelatedComparisons, determineWinner, getWinnerClass, getImageUrl, formatSpecValue } from '../../../utils/comparison-utils';
+import { getLaptopComparisons, getRelatedComparisons, determineWinner, getWinnerClass, getImageUrl, formatSpecValue, extractNumericValue } from '../../../utils/comparison-utils';
 
 export async function getStaticPaths() {
 	const comparisons = getLaptopComparisons();
@@ -48,16 +48,44 @@ if (screenSize1 && screenSize2) {
 	else h1Title = `${laptop1.name} vs ${laptop2.name} (${screenSize2}″)`;
 }
 
-// Dynamically get all available scores and specs
+// Get all score keys from both laptops
 const allScoreKeys = new Set([
 	...Object.keys(laptop1.scores || {}),
 	...Object.keys(laptop2.scores || {})
 ]);
 
+// Get all spec keys from both laptops
 const allSpecKeys = new Set([
 	...Object.keys(laptop1.specs || {}),
 	...Object.keys(laptop2.specs || {})
 ]);
+
+// Calculate score differences for conditional text
+const scoreAdvantages = [];
+Array.from(allScoreKeys).forEach(key => {
+	const score1 = laptop1.scores?.[key];
+	const score2 = laptop2.scores?.[key];
+	if (score1 && score2) {
+		const num1 = extractNumericValue(score1);
+		const num2 = extractNumericValue(score2);
+		if (num1 && num2) {
+			const isHigherBetter = ['score', 'gaming', 'performance', 'battery'].some(term => key.toLowerCase().includes(term));
+			if (isHigherBetter) {
+				if (num1 > num2) {
+					const percentage = Math.round(((num1 - num2) / num2) * 100);
+					scoreAdvantages.push({ metric: key, percentage, winner: 1 });
+				} else if (num2 > num1) {
+					const percentage = Math.round(((num2 - num1) / num1) * 100);
+					scoreAdvantages.push({ metric: key, percentage, winner: 2 });
+				}
+			}
+		}
+	}
+});
+
+
+// Dynamically get all available scores and specs
+// (already defined above, just need the helper functions below)
 
 // Helper function to create CPU/GPU model link
 function getCPULink(cpuName) {

@@ -1,7 +1,7 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
 import gpusData from '../../../data/gpus.json';
-import { getGPUComparisons, getRelatedComparisons, determineWinner, getWinnerClass, getImageUrl, formatSpecValue } from '../../../utils/comparison-utils';
+import { getGPUComparisons, getRelatedComparisons, determineWinner, getWinnerClass, getImageUrl, formatSpecValue, extractNumericValue } from '../../../utils/comparison-utils';
 
 export async function getStaticPaths() {
 	const comparisons = getGPUComparisons();
@@ -38,17 +38,46 @@ const allSpecKeys = new Set([
 	...Object.keys(gpu1.specs || {}),
 	...Object.keys(gpu2.specs || {})
 ]);
+
+// Calculate score differences for conditional text
+const scoreAdvantages = [];
+Array.from(allScoreKeys).forEach(key => {
+	const score1 = gpu1.scores?.[key];
+	const score2 = gpu2.scores?.[key];
+	if (score1 && score2) {
+		const num1 = extractNumericValue(score1);
+		const num2 = extractNumericValue(score2);
+		if (num1 && num2) {
+			const isHigherBetter = ['score', 'gaming', 'fps', 'tflops'].some(term => key.toLowerCase().includes(term));
+			if (isHigherBetter) {
+				if (num1 > num2) {
+					const percentage = Math.round(((num1 - num2) / num2) * 100);
+					scoreAdvantages.push({ metric: key, percentage, winner: 1 });
+				} else if (num2 > num1) {
+					const percentage = Math.round(((num2 - num1) / num1) * 100);
+					scoreAdvantages.push({ metric: key, percentage, winner: 2 });
+				}
+			}
+		}
+	}
+});
+
+// Determine overall winner (more advantages)
+const winner = scoreAdvantages.filter(a => a.winner === 1).length > scoreAdvantages.filter(a => a.winner === 2).length ? 1 : 2;
+const winningGPU = winner === 1 ? gpu1 : gpu2;
+const topAdvantages = scoreAdvantages.filter(a => a.winner === winner).slice(0, 5);
 ---
 
 <Layout title={`${gpu1.name} vs ${gpu2.name} - GPU Comparison`} description={description}>
 	<div class="comparison-container">
 		<div class="comparison-header">
-			<h1 class="page-title">{gpu1.name} vs {gpu2.name}</h1>
+			<h1 class="page-title">{gpu1.name} <span class="vs-text">vs</span> {gpu2.name}</h1>
 		</div>
 
-		<!-- GPUs Header Section - Side by Side -->
-		<section class="comparison-header-section">
+		<!-- Review Section Header -->
+		<div class="comparison-header-section">
 			<div class="gpu-card">
+				<div class="card-badge">📋 Review</div>
 				<img 
 					src={getImageUrl(gpu1.images?.main)} 
 					alt={gpu1.name}
@@ -59,13 +88,10 @@ const allSpecKeys = new Set([
 						{gpu1.name}
 					</a>
 				</h2>
-				<div class="gpu-meta">
-					<span class="price">${gpu1.price || 'N/A'}</span>
-					{gpu1.specs?.Released && <span class="released">{gpu1.specs.Released}</span>}
-				</div>
 			</div>
 
 			<div class="gpu-card">
+				<div class="card-badge">📋 Review</div>
 				<img 
 					src={getImageUrl(gpu2.images?.main)} 
 					alt={gpu2.name}
@@ -76,16 +102,104 @@ const allSpecKeys = new Set([
 						{gpu2.name}
 					</a>
 				</h2>
-				<div class="gpu-meta">
-					<span class="price">${gpu2.price || 'N/A'}</span>
-					{gpu2.specs?.Released && <span class="released">{gpu2.specs.Released}</span>}
+			</div>
+		</div>
+
+		<!-- Performance Scores Section -->
+		{allScoreKeys.size > 0 && (
+			<div class="comparison-section">
+				<h3 class="section-title">🎮 Performance</h3>
+				<p class="section-subtitle">Gaming and compute performance</p>
+				<div class="score-grid">
+					{Array.from(allScoreKeys).sort().slice(0, 6).map(key => {
+						const score1 = gpu1.scores?.[key];
+						const score2 = gpu2.scores?.[key];
+						const num1 = extractNumericValue(score1);
+						const num2 = extractNumericValue(score2);
+						const winner = determineWinner(score1, score2, key);
+						
+						return (
+							<div class="score-item">
+								<div class="score-label">{key}</div>
+								<div class="score-row">
+									<div class={`score-box ${winner === 1 ? 'winner' : ''}`}>
+										<span class="score-name">{gpu1.name.split(' ').slice(-1)[0]}</span>
+										<span class="score-value">{score1 !== undefined ? score1 : 'N/A'}</span>
+									</div>
+									<div class={`score-box ${winner === 2 ? 'winner' : ''}`}>
+										<span class="score-name">{gpu2.name.split(' ').slice(-1)[0]}</span>
+										<span class="score-value">{score2 !== undefined ? score2 : 'N/A'}</span>
+									</div>
+								</div>
+								{num1 && num2 && (
+									<div class="score-bar">
+										<div class="bar-inner" style={`width: ${Math.min(100, (Math.max(num1, num2) / Math.max(num1, num2)) * 100)}%`}></div>
+									</div>
+								)}
+							</div>
+						);
+					})}
 				</div>
 			</div>
-		</section>
-		<!-- Score Comparison -->
+		)}
+
+		<!-- Specifications Section -->
+		{allSpecKeys.size > 0 && (
+			<div class="comparison-section">
+				<h3 class="section-title">📊 Specifications</h3>
+				<p class="section-subtitle">Technical specifications comparison</p>
+				<div class="specs-grid">
+					{Array.from(allSpecKeys).sort().slice(0, 8).map(key => {
+						const spec1 = gpu1.specs?.[key];
+						const spec2 = gpu2.specs?.[key];
+						const winner = determineWinner(spec1, spec2, key);
+						const formatted1 = formatSpecValue(spec1);
+						const formatted2 = formatSpecValue(spec2);
+						
+						return (
+							<div class="spec-item">
+								<div class="spec-label">{key}</div>
+								<div class="spec-row">
+									<div class={`spec-value ${winner === 1 ? 'winner' : ''}`}>
+										<Fragment set:html={formatted1} />
+									</div>
+									<div class={`spec-value ${winner === 2 ? 'winner' : ''}`}>
+										<Fragment set:html={formatted2} />
+									</div>
+								</div>
+							</div>
+						);
+					})}
+				</div>
+			</div>
+		)}
+
+		<!-- Key Differences Section -->
+		{topAdvantages.length > 0 && (
+			<div class="comparison-section key-differences">
+				<h3 class="section-title">💡 Key Differences</h3>
+				<p class="section-subtitle">What are the key differences between the GPUs</p>
+				<div class="advantages-block">
+					<h4 class="advantages-title">Advantages of the {winningGPU.name}</h4>
+					<ul class="advantages-list">
+						{topAdvantages.slice(0, 4).map(adv => (
+							<li class="advantage-item">
+								<span class="plus-icon">✓</span>
+								<span class="advantage-text">
+									{adv.percentage}% better {adv.metric.toLowerCase()} performance
+								</span>
+							</li>
+						))}
+					</ul>
+				</div>
+			</div>
+		)}
+
+		<!-- Tests and Specifications -->
 		{allScoreKeys.size > 0 && (
-			<section class="comparison-section">
-				<h2 class="section-title">Performance Scores</h2>
+			<div class="comparison-section">
+				<h3 class="section-title">📋 Tests and Specifications</h3>
+				<p class="section-subtitle">Detailed comparison table of test results</p>
 				<div class="comparison-table">
 					<div class="table-header">
 						<div class="metric-col">Metric</div>
@@ -109,48 +223,13 @@ const allSpecKeys = new Set([
 						);
 					})}
 				</div>
-			</section>
-		)}
-
-		<!-- Specifications Comparison -->
-		{allSpecKeys.size > 0 && (
-			<section class="comparison-section">
-				<h2 class="section-title">Specifications</h2>
-				<div class="comparison-table">
-					<div class="table-header">
-						<div class="metric-col">Specification</div>
-						<div class="value-col">{gpu1.name}</div>
-						<div class="value-col">{gpu2.name}</div>
-					</div>
-					{Array.from(allSpecKeys).sort().map(key => {
-						const spec1 = gpu1.specs?.[key];
-						const spec2 = gpu2.specs?.[key];
-						const winner = determineWinner(spec1, spec2, key);
-						
-						// Format values with proper spacing
-						const formatted1 = formatSpecValue(spec1);
-						const formatted2 = formatSpecValue(spec2);
-						
-						return (
-							<div class="table-row">
-								<div class="metric-col">{key}</div>
-								<div class={`value-col ${winner === 1 ? 'winner-left' : winner === 2 ? 'winner-right' : ''}`}>
-									<Fragment set:html={formatted1} />
-								</div>
-								<div class={`value-col ${winner === 2 ? 'winner-left' : winner === 1 ? 'winner-right' : ''}`}>
-									<Fragment set:html={formatted2} />
-								</div>
-							</div>
-						);
-					})}
-				</div>
-			</section>
+			</div>
 		)}
 
 		<!-- Related Comparisons -->
 		{relatedComparisons.length > 0 && (
 			<section class="comparison-section related-section">
-				<h2 class="section-title">Related GPU Comparisons</h2>
+				<h2 class="section-title">🔗 Related GPU Comparisons</h2>
 				<div class="related-comparisons-grid">
 					{relatedComparisons.slice(0, 10).map(rel => (
 						<a href={`/compare/gpu/${rel.id}/`} class="related-comparison-card">
@@ -172,101 +251,277 @@ const allSpecKeys = new Set([
 		max-width: 1200px;
 		margin: 0 auto;
 		padding: 2rem;
+		background: var(--bg-primary, #fff);
 	}
 
 	.comparison-header {
-		margin-bottom: 3rem;
+		margin-bottom: 2rem;
 	}
 
 	.page-title {
-		font-size: 2.5rem;
+		font-size: 2.2rem;
 		font-weight: 700;
-		margin-bottom: 0.5rem;
+		margin: 0;
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		flex-wrap: wrap;
+	}
+
+	.vs-text {
+		font-size: 1.5rem;
+		color: var(--text-secondary, #999);
+		font-weight: 400;
 	}
 
 	.comparison-header-section {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-		gap: 2rem;
-		margin-bottom: 3rem;
-		padding: 2rem;
-		background: var(--card-bg, #fff);
-		border-radius: 12px;
-		border: 1px solid var(--border-color, #eee);
-	}
-
-	.comparison-section {
-		margin-bottom: 3rem;
-		background: var(--card-bg, #fff);
-		padding: 2rem;
-		border-radius: 12px;
-		border: 1px solid var(--border-color, #eee);
-	}
-
-	.related-section {
-		background: var(--card-bg, #fff);
+		grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+		gap: 1.5rem;
+		margin-bottom: 2.5rem;
 	}
 
 	.gpu-card {
-		text-align: center;
-		padding: 1.5rem;
-		background: var(--section-bg, #f8f9fa);
+		background: var(--card-bg, #f9f9f9);
+		border: 1px solid var(--border-color, #e0e0e0);
 		border-radius: 8px;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
+		padding: 1.5rem;
+		text-align: center;
+		position: relative;
+	}
+
+	.card-badge {
+		position: absolute;
+		top: 1rem;
+		left: 1rem;
+		background: var(--primary-color, #2563eb);
+		color: white;
+		padding: 0.4rem 0.8rem;
+		border-radius: 4px;
+		font-size: 0.75rem;
+		font-weight: 600;
 	}
 
 	.gpu-image {
-		width: 250px;
-		height: 250px;
+		width: 100%;
+		max-width: 200px;
+		height: 200px;
 		object-fit: contain;
 		margin-bottom: 1rem;
+		margin-top: 1rem;
 	}
 
 	.gpu-name {
-		font-size: 1.3rem;
-		margin: 1rem 0;
+		font-size: 1.1rem;
+		margin: 1rem 0 0 0;
+		word-break: break-word;
 	}
 
 	.gpu-name a {
 		color: var(--text-primary, #1a1a1a);
 		text-decoration: none;
+		transition: color 0.2s ease;
 	}
 
 	.gpu-name a:hover {
-		color: var(--primary-color, #007bff);
+		color: var(--primary-color, #2563eb);
 	}
 
-	.gpu-meta {
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-		font-size: 0.9rem;
-		color: var(--text-secondary, #666);
-	}
-
-	.price {
-		font-weight: 600;
-		color: var(--primary-color, #007bff);
-	}
-
-	.released {
-		font-size: 0.85rem;
-		color: var(--text-secondary, #666);
+	.comparison-section {
+		background: var(--card-bg, #fff);
+		border: 1px solid var(--border-color, #e0e0e0);
+		border-radius: 8px;
+		padding: 2rem;
+		margin-bottom: 2rem;
 	}
 
 	.section-title {
-		font-size: 1.5rem;
-		font-weight: 600;
-		margin-bottom: 1.5rem;
+		font-size: 1.4rem;
+		font-weight: 700;
+		margin: 0 0 0.5rem 0;
 		color: var(--text-primary, #1a1a1a);
 	}
 
+	.section-subtitle {
+		font-size: 0.9rem;
+		color: var(--text-secondary, #666);
+		margin: 0 0 1.5rem 0;
+	}
+
+	.score-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+		gap: 1.5rem;
+	}
+
+	.score-item {
+		border: 1px solid var(--border-color, #e0e0e0);
+		border-radius: 6px;
+		padding: 1rem;
+		background: var(--section-bg, #fafafa);
+	}
+
+	.score-label {
+		font-size: 0.85rem;
+		font-weight: 600;
+		color: var(--text-secondary, #666);
+		text-transform: uppercase;
+		margin-bottom: 0.75rem;
+	}
+
+	.score-row {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 0.75rem;
+		margin-bottom: 0.75rem;
+	}
+
+	.score-box {
+		background: white;
+		border: 1px solid var(--border-color, #e0e0e0);
+		border-radius: 4px;
+		padding: 0.75rem;
+		text-align: center;
+		transition: all 0.2s ease;
+	}
+
+	.score-box.winner {
+		background: rgba(76, 175, 80, 0.1);
+		border-color: #4CAF50;
+	}
+
+	.score-name {
+		display: block;
+		font-size: 0.75rem;
+		color: var(--text-secondary, #666);
+		font-weight: 500;
+		margin-bottom: 0.25rem;
+	}
+
+	.score-value {
+		display: block;
+		font-size: 1.3rem;
+		font-weight: 700;
+		color: var(--text-primary, #1a1a1a);
+	}
+
+	.score-bar {
+		height: 4px;
+		background: var(--border-color, #e0e0e0);
+		border-radius: 2px;
+		overflow: hidden;
+	}
+
+	.bar-inner {
+		height: 100%;
+		background: linear-gradient(90deg, #4CAF50, #45a049);
+		border-radius: 2px;
+	}
+
+	.specs-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+		gap: 1rem;
+	}
+
+	.spec-item {
+		border: 1px solid var(--border-color, #e0e0e0);
+		border-radius: 6px;
+		padding: 1rem;
+		background: var(--section-bg, #fafafa);
+	}
+
+	.spec-label {
+		font-size: 0.8rem;
+		font-weight: 600;
+		color: var(--text-secondary, #666);
+		text-transform: uppercase;
+		margin-bottom: 0.75rem;
+	}
+
+	.spec-row {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 0.75rem;
+	}
+
+	.spec-value {
+		background: white;
+		border: 1px solid var(--border-color, #e0e0e0);
+		border-radius: 4px;
+		padding: 0.75rem;
+		font-size: 0.9rem;
+		font-weight: 500;
+		text-align: center;
+		word-break: break-word;
+	}
+
+	.spec-value.winner {
+		background: rgba(76, 175, 80, 0.1);
+		border-color: #4CAF50;
+	}
+
+	.key-differences {
+		background: linear-gradient(135deg, rgba(37, 99, 235, 0.05), rgba(76, 175, 80, 0.05));
+	}
+
+	.advantages-block {
+		background: white;
+		border-left: 4px solid var(--primary-color, #2563eb);
+		padding: 1.5rem;
+		border-radius: 4px;
+		margin-top: 1rem;
+	}
+
+	.advantages-title {
+		font-size: 1.1rem;
+		font-weight: 700;
+		margin: 0 0 1rem 0;
+		color: var(--text-primary, #1a1a1a);
+	}
+
+	.advantages-list {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+	}
+
+	.advantage-item {
+		display: flex;
+		align-items: flex-start;
+		gap: 0.75rem;
+		margin-bottom: 0.75rem;
+		font-size: 0.95rem;
+		color: var(--text-primary, #1a1a1a);
+	}
+
+	.advantage-item:last-child {
+		margin-bottom: 0;
+	}
+
+	.plus-icon {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		min-width: 20px;
+		height: 20px;
+		background: #4CAF50;
+		color: white;
+		border-radius: 50%;
+		font-size: 0.8rem;
+		font-weight: 700;
+		flex-shrink: 0;
+	}
+
+	.advantage-text {
+		line-height: 1.5;
+	}
+
 	.comparison-table {
+		width: 100%;
 		display: flex;
 		flex-direction: column;
-		border: 1px solid var(--border-color, #eee);
+		border: 1px solid var(--border-color, #e0e0e0);
 		border-radius: 8px;
 		overflow: hidden;
 	}
@@ -275,45 +530,41 @@ const allSpecKeys = new Set([
 	.table-row {
 		display: grid;
 		grid-template-columns: 1fr 1fr 1fr;
-		border-bottom: 1px solid var(--border-color, #eee);
+	}
+
+	.table-header {
+		background: var(--section-bg, #f5f5f5);
+		font-weight: 600;
+		border-bottom: 2px solid var(--border-color, #e0e0e0);
+	}
+
+	.metric-col,
+	.value-col {
+		padding: 1rem;
+		border-right: 1px solid var(--border-color, #e0e0e0);
+	}
+
+	.metric-col:last-child,
+	.value-col:last-child {
+		border-right: none;
+	}
+
+	.table-row {
+		border-bottom: 1px solid var(--border-color, #e0e0e0);
 	}
 
 	.table-row:last-child {
 		border-bottom: none;
 	}
 
-	.table-header {
-		background: var(--section-bg, #f8f9fa);
-		font-weight: 600;
-		color: var(--text-primary, #1a1a1a);
-		border-bottom: 2px solid var(--border-color, #ddd);
-	}
-
-	.metric-col {
-		padding: 1rem;
-		text-align: left;
-		font-weight: 500;
-	}
-
-	.table-header .metric-col {
-		font-weight: 600;
-	}
-
-	.value-col {
-		padding: 1rem;
-		word-break: break-word;
-		transition: background 0.2s ease;
-	}
-
 	.value-col.winner-left,
 	.value-col.winner-right {
 		background: rgba(76, 175, 80, 0.1);
-		color: var(--text-primary, #1a1a1a);
 	}
 
 	.related-comparisons-grid {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+		grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 		gap: 1rem;
 	}
 
@@ -322,76 +573,20 @@ const allSpecKeys = new Set([
 		align-items: center;
 		justify-content: center;
 		padding: 1.5rem;
-		background: var(--section-bg, #f8f9fa);
-		border: 1px solid var(--border-color, #eee);
+		background: var(--section-bg, #f9f9f9);
+		border: 1px solid var(--border-color, #e0e0e0);
 		border-radius: 8px;
-	}
-
-	@media (max-width: 768px) {
-		.comparison-container {
-			padding: 1rem;
-		}
-
-		.page-title {
-			font-size: 1.5rem;
-		}
-
-		.comparison-header-section {
-			grid-template-columns: 1fr;
-			gap: 1rem;
-			padding: 1rem;
-			margin-bottom: 2rem;
-		}
-
-		.comparison-section {
-			padding: 1rem;
-			margin-bottom: 2rem;
-		}
-
-		.table-header,
-		.table-row {
-			grid-template-columns: 1fr;
-			gap: 0.5rem;
-		}
-
-		.metric-col,
-		.value-col {
-			padding: 0.75rem;
-			border-right: none;
-			border-bottom: 1px solid var(--border-color, #eee);
-		}
-
-		.metric-col {
-			font-weight: 600;
-			background: var(--section-bg, #f8f9fa);
-		}
-
-		.metric-col:last-child {
-			border-bottom: none;
-		}
-
-		.value-col:last-child {
-			border-bottom: none;
-		}
-
-		.gpu-image {
-			max-width: 200px;
-			height: 200px;
-		}
-
-		.related-comparisons-grid {
-			grid-template-columns: 1fr;
-			gap: 0.75rem;
-		}
-	}
 		text-decoration: none;
 		transition: all 0.3s ease;
+		cursor: pointer;
 	}
 
 	.related-comparison-card:hover {
-		background: var(--primary-color, #007bff);
+		background: var(--primary-color, #2563eb);
 		color: white;
-		border-color: var(--primary-color, #007bff);
+		border-color: var(--primary-color, #2563eb);
+		transform: translateY(-2px);
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 	}
 
 	.related-item {
@@ -408,36 +603,112 @@ const allSpecKeys = new Set([
 	}
 
 	.vs {
-		font-size: 0.85rem;
-		color: var(--text-secondary, #666);
+		font-size: 0.8rem;
+		color: var(--text-secondary, #999);
 		font-weight: 500;
 	}
 
 	.related-comparison-card:hover .vs {
-		color: rgba(255, 255, 255, 0.8);
+		color: rgba(255, 255, 255, 0.7);
 	}
 
 	@media (max-width: 768px) {
+		.comparison-container {
+			padding: 1rem;
+		}
+
+		.page-title {
+			font-size: 1.4rem;
+		}
+
+		.vs-text {
+			font-size: 1.1rem;
+		}
+
 		.comparison-header-section {
 			grid-template-columns: 1fr;
+			gap: 1rem;
+			margin-bottom: 1.5rem;
+		}
+
+		.comparison-section {
+			padding: 1rem;
+			margin-bottom: 1.5rem;
+		}
+
+		.section-title {
+			font-size: 1.15rem;
+		}
+
+		.score-grid,
+		.specs-grid {
+			grid-template-columns: 1fr;
+		}
+
+		.score-item,
+		.spec-item {
+			padding: 0.75rem;
 		}
 
 		.table-header,
 		.table-row {
 			grid-template-columns: 1fr;
+			gap: 0.5rem;
+		}
+
+		.metric-col,
+		.value-col {
+			padding: 0.75rem;
+			border-right: none !important;
+			border-bottom: 1px solid var(--border-color, #e0e0e0);
 		}
 
 		.metric-col {
+			background: var(--section-bg, #f5f5f5);
 			font-weight: 600;
-			background: var(--section-bg, #f8f9fa);
 		}
 
-		.page-title {
-			font-size: 1.75rem;
+		.gpu-image {
+			max-width: 150px;
+			height: 150px;
 		}
 
 		.related-comparisons-grid {
 			grid-template-columns: 1fr;
+		}
+
+		.advantages-block {
+			padding: 1rem;
+		}
+
+		.advantage-item {
+			font-size: 0.9rem;
+		}
+	}
+
+	@media (max-width: 480px) {
+		.page-title {
+			font-size: 1.2rem;
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 0.5rem;
+		}
+
+		.vs-text {
+			font-size: 0.9rem;
+		}
+
+		.section-title {
+			font-size: 1rem;
+		}
+
+		.score-box,
+		.spec-value {
+			padding: 0.5rem;
+		}
+
+		.score-value {
+			font-size: 1.1rem;
 		}
 	}
 </style>
