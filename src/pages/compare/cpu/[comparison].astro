@@ -1,7 +1,7 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
 import cpusData from '../../../data/cpus.json';
-import { getCPUComparisons, getRelatedComparisons, determineWinner, getWinnerClass, getImageUrl, formatSpecValue, extractNumericValue } from '../../../utils/comparison-utils';
+import { getCPUComparisons, getRelatedComparisons, determineWinner, getImageUrl, formatSpecValue, extractNumericValue } from '../../../utils/comparison-utils';
 
 export async function getStaticPaths() {
 	const comparisons = getCPUComparisons();
@@ -21,12 +21,7 @@ if (!comp) {
 const cpu1 = comp.model1;
 const cpu2 = comp.model2;
 
-// Create unique description
-const description = `Compare ${cpu1.name} vs ${cpu2.name} processor specs, benchmarks, and performance metrics. See detailed scoring and determine the best CPU for your needs.`;
-
-// Get related comparisons
-const allComparisons = getCPUComparisons();
-const relatedComparisons = getRelatedComparisons(comp, allComparisons, 10);
+const description = `Compare ${cpu1.name} vs ${cpu2.name} processor specs, benchmarks, and performance metrics.`;
 
 // Get all score keys from both CPUs
 const allScoreKeys = new Set([
@@ -63,654 +58,81 @@ Array.from(allScoreKeys).forEach(key => {
 	}
 });
 
-// Determine overall winner (more advantages)
+// Determine overall winner
 const winner = scoreAdvantages.filter(a => a.winner === 1).length > scoreAdvantages.filter(a => a.winner === 2).length ? 1 : 2;
-const winningCPU = winner === 1 ? cpu1 : cpu2;
-const topAdvantages = scoreAdvantages.filter(a => a.winner === winner).slice(0, 5);
 ---
 
 <Layout title={`${cpu1.name} vs ${cpu2.name} - CPU Comparison`} description={description}>
 	<div class="comparison-container">
-		<div class="comparison-header">
-			<h1 class="page-title">{cpu1.name} <span class="vs-text">vs</span> {cpu2.name}</h1>
-		</div>
-
-		<!-- Review Section Header -->
-		<div class="comparison-header-section">
-			<div class="cpu-card">
-				<div class="card-badge">📋 Review</div>
-				<img 
-					src={getImageUrl(cpu1.images?.main)} 
-					alt={cpu1.name}
-					class="cpu-image"
-				/>
-				<h2 class="cpu-name">
-					<a href={`/cpus/${cpu1.slug.split('-')[0]}/${cpu1.slug.split('-')[1]}/${cpu1.slug}/`}>
-						{cpu1.name}
-					</a>
-				</h2>
+		<div class="card">
+			<div class="card-block bb-light pb flex flex-wrap">
+				<div class="card-head">
+					<h2 class="title-h2">Review</h2>
+				</div>
+				<span class="card-head-desc">Evaluation of {cpu1.name} and {cpu2.name}</span>
 			</div>
 
-			<div class="cpu-card">
-				<div class="card-badge">📋 Review</div>
-				<img 
-					src={getImageUrl(cpu2.images?.main)} 
-					alt={cpu2.name}
-					class="cpu-image"
-				/>
-				<h2 class="cpu-name">
-					<a href={`/cpus/${cpu2.slug.split('-')[0]}/${cpu2.slug.split('-')[1]}/${cpu2.slug}/`}>
-						{cpu2.name}
-					</a>
-				</h2>
-			</div>
-		</div>
-
-		<!-- Performance Scores Section -->
-		<div class="comparison-section">
-			<h3 class="section-title">⚡ Performance</h3>
-			<p class="section-subtitle">System and application performance</p>
-			<div class="score-grid">
-				{Array.from(allScoreKeys).sort().slice(0, 6).map(key => {
-					const score1 = cpu1.scores?.[key];
-					const score2 = cpu2.scores?.[key];
-					const num1 = extractNumericValue(score1);
-					const num2 = extractNumericValue(score2);
-					const winner = score1 && score2 ? determineWinner(score1, score2, key) : 0;
-					
-					return (
-						<div class="score-item">
-							<div class="score-label">{key}</div>
-							<div class="score-row">
-								<div class={`score-box ${winner === 1 ? 'winner' : ''}`}>
-									<span class="score-name">{cpu1.name.split(' ').slice(-1)[0]}</span>
-									<span class="score-value">{score1 !== undefined ? score1 : 'N/A'}</span>
+			<div class="card-block">
+				<div class="two-columns-container">
+					<div class="two-columns">
+						{/* Generate score categories dynamically */}
+						{Array.from(allScoreKeys).sort().map(categoryKey => {
+							const score1 = cpu1.scores?.[categoryKey];
+							const score2 = cpu2.scores?.[categoryKey];
+							const num1 = extractNumericValue(score1);
+							const num2 = extractNumericValue(score2);
+							const categoryWinner = num1 && num2 ? (num1 > num2 ? 1 : num2 > num1 ? 2 : 0) : 0;
+							
+							return (
+								<div class="two-columns-item mb">
+									<div>
+										<div style="margin-bottom: 6px;">
+											<div class="title-h4">{categoryKey}</div>
+											<div class="text-gray-small">Performance metric</div>
+										</div>
+										<div>
+											<div class="mb">
+												<div class="score-bar">
+													<div class="score-bar-name">
+														<a href={`/cpus/${cpu1.slug.split('-')[0]}/${cpu1.slug.split('-')[1]}/${cpu1.slug}/`}>
+															{cpu1.name}
+														</a>
+													</div>
+													<div class="score-bar-result">
+														<span class={`score-bar-result-square ${categoryWinner === 1 ? 'score-bar-result-square-dark' : ''}`}>
+															{num1 !== undefined ? Math.round(num1) : 'N/A'}
+														</span>
+													</div>
+													<div class="score-bar-line">
+														<div class="score-bar-line-filled" style={`width: ${Math.min(100, (num1 / Math.max(num1 || 0, num2 || 0)) * 100)}%`}></div>
+													</div>
+												</div>
+											</div>
+											<div class="mb">
+												<div class="score-bar">
+													<div class="score-bar-name">
+														<a href={`/cpus/${cpu2.slug.split('-')[0]}/${cpu2.slug.split('-')[1]}/${cpu2.slug}/`}>
+															{cpu2.name}
+														</a>
+													</div>
+													<div class="score-bar-result">
+														<span class={`score-bar-result-square ${categoryWinner === 2 ? 'score-bar-result-square-dark' : ''}`}>
+															{num2 !== undefined ? Math.round(num2) : 'N/A'}
+														</span>
+													</div>
+													<div class="score-bar-line">
+														<div class="score-bar-line-filled" style={`width: ${Math.min(100, (num2 / Math.max(num1 || 0, num2 || 0)) * 100)}%`}></div>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
 								</div>
-								<div class={`score-box ${winner === 2 ? 'winner' : ''}`}>
-									<span class="score-name">{cpu2.name.split(' ').slice(-1)[0]}</span>
-									<span class="score-value">{score2 !== undefined ? score2 : 'N/A'}</span>
-								</div>
-							</div>
-							{num1 && num2 && (
-								<div class="score-bar">
-									<div class="bar-inner" style={`width: ${Math.min(100, (Math.max(num1, num2) / Math.max(num1, num2)) * 100)}%`}></div>
-								</div>
-							)}
-						</div>
-					);
-				})}
-			</div>
-		</div>
-
-		<!-- Specifications Section -->
-		<div class="comparison-section">
-			<h3 class="section-title">📊 Specifications</h3>
-			<p class="section-subtitle">Technical specifications comparison</p>
-			<div class="specs-grid">
-				{Array.from(allSpecKeys).sort().slice(0, 8).map(key => {
-					const spec1 = cpu1.specs?.[key];
-					const spec2 = cpu2.specs?.[key];
-					const winner = spec1 && spec2 ? determineWinner(spec1, spec2, key) : 0;
-					const formatted1 = formatSpecValue(spec1);
-					const formatted2 = formatSpecValue(spec2);
-					
-					return (
-						<div class="spec-item">
-							<div class="spec-label">{key}</div>
-							<div class="spec-row">
-								<div class={`spec-value ${winner === 1 ? 'winner' : ''}`}>
-									<Fragment set:html={formatted1} />
-								</div>
-								<div class={`spec-value ${winner === 2 ? 'winner' : ''}`}>
-									<Fragment set:html={formatted2} />
-								</div>
-							</div>
-						</div>
-					);
-				})}
-			</div>
-		</div>
-
-		<!-- Key Differences Section -->
-		{topAdvantages.length > 0 && (
-			<div class="comparison-section key-differences">
-				<h3 class="section-title">💡 Key Differences</h3>
-				<p class="section-subtitle">What are the key differences between the processors</p>
-				<div class="advantages-block">
-					<h4 class="advantages-title">Advantages of the {winningCPU.name}</h4>
-					<ul class="advantages-list">
-						{topAdvantages.slice(0, 4).map(adv => (
-							<li class="advantage-item">
-								<span class="plus-icon">✓</span>
-								<span class="advantage-text">
-									{adv.percentage}% better {adv.metric.toLowerCase()} performance
-								</span>
-							</li>
-						))}
-					</ul>
+							);
+						})}
+					</div>
 				</div>
 			</div>
-		)}
-
-		<!-- Tests and Specifications -->
-		<div class="comparison-section">
-			<h3 class="section-title">📋 Tests and Specifications</h3>
-			<p class="section-subtitle">Detailed comparison table of test results</p>
-			<div class="comparison-table">
-				<div class="table-header">
-					<div class="metric-col">Metric</div>
-					<div class="value-col">{cpu1.name}</div>
-					<div class="value-col">{cpu2.name}</div>
-				</div>
-				{Array.from(allScoreKeys).sort().map(key => {
-					const score1 = cpu1.scores?.[key];
-					const score2 = cpu2.scores?.[key];
-					const winner = score1 && score2 ? determineWinner(score1, score2, key) : 0;
-					
-					return (
-						<div class="table-row">
-							<div class="metric-col">{key}</div>
-							<div class={`value-col ${getWinnerClass(winner === 1 ? 1 : winner === 2 ? 2 : 0)}`}>
-								{score1 !== undefined ? score1 : 'N/A'}
-							</div>
-							<div class={`value-col ${getWinnerClass(winner === 2 ? 1 : winner === 1 ? 2 : 0)}`}>
-								{score2 !== undefined ? score2 : 'N/A'}
-							</div>
-						</div>
-					);
-				})}
-			</div>
 		</div>
-
-		<!-- Related Comparisons -->
-		{relatedComparisons.length > 0 && (
-			<section class="comparison-section related-section">
-				<h2 class="section-title">🔗 Related CPU Comparisons</h2>
-				<div class="related-comparisons-grid">
-					{relatedComparisons.slice(0, 10).map(rel => (
-						<a href={`/compare/cpu/${rel.id}/`} class="related-comparison-card">
-							<div class="related-item">
-								<span class="item-name">{rel.model1.name}</span>
-								<span class="vs">vs</span>
-								<span class="item-name">{rel.model2.name}</span>
-							</div>
-						</a>
-					))}
-				</div>
-			</section>
-		)}
 	</div>
 </Layout>
-
-<style>
-	.comparison-container {
-		max-width: 1200px;
-		margin: 0 auto;
-		padding: 2rem;
-		background: var(--bg-primary, #fff);
-	}
-
-	.comparison-header {
-		margin-bottom: 2rem;
-	}
-
-	.page-title {
-		font-size: 2.2rem;
-		font-weight: 700;
-		margin: 0;
-		display: flex;
-		align-items: center;
-		gap: 1rem;
-		flex-wrap: wrap;
-	}
-
-	.vs-text {
-		font-size: 1.5rem;
-		color: var(--text-secondary, #999);
-		font-weight: 400;
-	}
-
-	.comparison-header-section {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-		gap: 1.5rem;
-		margin-bottom: 2.5rem;
-	}
-
-	.cpu-card {
-		background: var(--card-bg, #f9f9f9);
-		border: 1px solid var(--border-color, #e0e0e0);
-		border-radius: 8px;
-		padding: 1.5rem;
-		text-align: center;
-		position: relative;
-	}
-
-	.card-badge {
-		position: absolute;
-		top: 1rem;
-		left: 1rem;
-		background: var(--primary-color, #2563eb);
-		color: white;
-		padding: 0.4rem 0.8rem;
-		border-radius: 4px;
-		font-size: 0.75rem;
-		font-weight: 600;
-	}
-
-	.cpu-image {
-		width: 100%;
-		max-width: 200px;
-		height: 200px;
-		object-fit: contain;
-		margin-bottom: 1rem;
-		margin-top: 1rem;
-	}
-
-	.cpu-name {
-		font-size: 1.1rem;
-		margin: 1rem 0 0 0;
-		word-break: break-word;
-	}
-
-	.cpu-name a {
-		color: var(--text-primary, #1a1a1a);
-		text-decoration: none;
-		transition: color 0.2s ease;
-	}
-
-	.cpu-name a:hover {
-		color: var(--primary-color, #2563eb);
-	}
-
-	.comparison-section {
-		background: var(--card-bg, #fff);
-		border: 1px solid var(--border-color, #e0e0e0);
-		border-radius: 8px;
-		padding: 2rem;
-		margin-bottom: 2rem;
-	}
-
-	.section-title {
-		font-size: 1.4rem;
-		font-weight: 700;
-		margin: 0 0 0.5rem 0;
-		color: var(--text-primary, #1a1a1a);
-	}
-
-	.section-subtitle {
-		font-size: 0.9rem;
-		color: var(--text-secondary, #666);
-		margin: 0 0 1.5rem 0;
-	}
-
-	/* Score Grid */
-	.score-grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-		gap: 1.5rem;
-	}
-
-	.score-item {
-		border: 1px solid var(--border-color, #e0e0e0);
-		border-radius: 6px;
-		padding: 1rem;
-		background: var(--section-bg, #fafafa);
-	}
-
-	.score-label {
-		font-size: 0.85rem;
-		font-weight: 600;
-		color: var(--text-secondary, #666);
-		text-transform: uppercase;
-		margin-bottom: 0.75rem;
-	}
-
-	.score-row {
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: 0.75rem;
-		margin-bottom: 0.75rem;
-	}
-
-	.score-box {
-		background: white;
-		border: 1px solid var(--border-color, #e0e0e0);
-		border-radius: 4px;
-		padding: 0.75rem;
-		text-align: center;
-		transition: all 0.2s ease;
-	}
-
-	.score-box.winner {
-		background: rgba(76, 175, 80, 0.1);
-		border-color: #4CAF50;
-	}
-
-	.score-name {
-		display: block;
-		font-size: 0.75rem;
-		color: var(--text-secondary, #666);
-		font-weight: 500;
-		margin-bottom: 0.25rem;
-	}
-
-	.score-value {
-		display: block;
-		font-size: 1.3rem;
-		font-weight: 700;
-		color: var(--text-primary, #1a1a1a);
-	}
-
-	.score-bar {
-		height: 4px;
-		background: var(--border-color, #e0e0e0);
-		border-radius: 2px;
-		overflow: hidden;
-	}
-
-	.bar-inner {
-		height: 100%;
-		background: linear-gradient(90deg, #4CAF50, #45a049);
-		border-radius: 2px;
-	}
-
-	/* Specs Grid */
-	.specs-grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-		gap: 1rem;
-	}
-
-	.spec-item {
-		border: 1px solid var(--border-color, #e0e0e0);
-		border-radius: 6px;
-		padding: 1rem;
-		background: var(--section-bg, #fafafa);
-	}
-
-	.spec-label {
-		font-size: 0.8rem;
-		font-weight: 600;
-		color: var(--text-secondary, #666);
-		text-transform: uppercase;
-		margin-bottom: 0.75rem;
-	}
-
-	.spec-row {
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: 0.75rem;
-	}
-
-	.spec-value {
-		background: white;
-		border: 1px solid var(--border-color, #e0e0e0);
-		border-radius: 4px;
-		padding: 0.75rem;
-		font-size: 0.9rem;
-		font-weight: 500;
-		text-align: center;
-		word-break: break-word;
-	}
-
-	.spec-value.winner {
-		background: rgba(76, 175, 80, 0.1);
-		border-color: #4CAF50;
-	}
-
-	/* Key Differences */
-	.key-differences {
-		background: linear-gradient(135deg, rgba(37, 99, 235, 0.05), rgba(76, 175, 80, 0.05));
-	}
-
-	.advantages-block {
-		background: white;
-		border-left: 4px solid var(--primary-color, #2563eb);
-		padding: 1.5rem;
-		border-radius: 4px;
-		margin-top: 1rem;
-	}
-
-	.advantages-title {
-		font-size: 1.1rem;
-		font-weight: 700;
-		margin: 0 0 1rem 0;
-		color: var(--text-primary, #1a1a1a);
-	}
-
-	.advantages-list {
-		list-style: none;
-		margin: 0;
-		padding: 0;
-	}
-
-	.advantage-item {
-		display: flex;
-		align-items: flex-start;
-		gap: 0.75rem;
-		margin-bottom: 0.75rem;
-		font-size: 0.95rem;
-		color: var(--text-primary, #1a1a1a);
-	}
-
-	.advantage-item:last-child {
-		margin-bottom: 0;
-	}
-
-	.plus-icon {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		min-width: 20px;
-		height: 20px;
-		background: #4CAF50;
-		color: white;
-		border-radius: 50%;
-		font-size: 0.8rem;
-		font-weight: 700;
-		flex-shrink: 0;
-	}
-
-	.advantage-text {
-		line-height: 1.5;
-	}
-
-	/* Comparison Table */
-	.comparison-table {
-		width: 100%;
-		display: flex;
-		flex-direction: column;
-		border: 1px solid var(--border-color, #e0e0e0);
-		border-radius: 8px;
-		overflow: hidden;
-	}
-
-	.table-header,
-	.table-row {
-		display: grid;
-		grid-template-columns: 1fr 1fr 1fr;
-	}
-
-	.table-header {
-		background: var(--section-bg, #f5f5f5);
-		font-weight: 600;
-		border-bottom: 2px solid var(--border-color, #e0e0e0);
-	}
-
-	.metric-col,
-	.value-col {
-		padding: 1rem;
-		border-right: 1px solid var(--border-color, #e0e0e0);
-	}
-
-	.metric-col:last-child,
-	.value-col:last-child {
-		border-right: none;
-	}
-
-	.table-row {
-		border-bottom: 1px solid var(--border-color, #e0e0e0);
-	}
-
-	.table-row:last-child {
-		border-bottom: none;
-	}
-
-	.value-col.winner-left,
-	.value-col.winner-right {
-		background: rgba(76, 175, 80, 0.1);
-	}
-
-	/* Related Comparisons */
-	.related-comparisons-grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-		gap: 1rem;
-	}
-
-	.related-comparison-card {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		padding: 1.5rem;
-		background: var(--section-bg, #f9f9f9);
-		border: 1px solid var(--border-color, #e0e0e0);
-		border-radius: 8px;
-		text-decoration: none;
-		transition: all 0.3s ease;
-		cursor: pointer;
-	}
-
-	.related-comparison-card:hover {
-		background: var(--primary-color, #2563eb);
-		color: white;
-		border-color: var(--primary-color, #2563eb);
-		transform: translateY(-2px);
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-	}
-
-	.related-item {
-		text-align: center;
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-	}
-
-	.item-name {
-		font-weight: 600;
-		font-size: 0.95rem;
-		word-break: break-word;
-	}
-
-	.vs {
-		font-size: 0.8rem;
-		color: var(--text-secondary, #999);
-		font-weight: 500;
-	}
-
-	.related-comparison-card:hover .vs {
-		color: rgba(255, 255, 255, 0.7);
-	}
-
-	/* Mobile Responsive */
-	@media (max-width: 768px) {
-		.comparison-container {
-			padding: 1rem;
-		}
-
-		.page-title {
-			font-size: 1.4rem;
-		}
-
-		.vs-text {
-			font-size: 1.1rem;
-		}
-
-		.comparison-header-section {
-			grid-template-columns: 1fr;
-			gap: 1rem;
-			margin-bottom: 1.5rem;
-		}
-
-		.comparison-section {
-			padding: 1rem;
-			margin-bottom: 1.5rem;
-		}
-
-		.section-title {
-			font-size: 1.15rem;
-		}
-
-		.score-grid,
-		.specs-grid {
-			grid-template-columns: 1fr;
-		}
-
-		.score-item,
-		.spec-item {
-			padding: 0.75rem;
-		}
-
-		.table-header,
-		.table-row {
-			grid-template-columns: 1fr;
-			gap: 0.5rem;
-		}
-
-		.metric-col,
-		.value-col {
-			padding: 0.75rem;
-			border-right: none !important;
-			border-bottom: 1px solid var(--border-color, #e0e0e0);
-		}
-
-		.metric-col {
-			background: var(--section-bg, #f5f5f5);
-			font-weight: 600;
-		}
-
-		.cpu-image {
-			max-width: 150px;
-			height: 150px;
-		}
-
-		.related-comparisons-grid {
-			grid-template-columns: 1fr;
-		}
-
-		.advantages-block {
-			padding: 1rem;
-		}
-
-		.advantage-item {
-			font-size: 0.9rem;
-		}
-	}
-
-	@media (max-width: 480px) {
-		.page-title {
-			font-size: 1.2rem;
-			flex-direction: column;
-			align-items: flex-start;
-			gap: 0.5rem;
-		}
-
-		.vs-text {
-			font-size: 0.9rem;
-		}
-
-		.section-title {
-			font-size: 1rem;
-		}
-
-		.score-box,
-		.spec-value {
-			padding: 0.5rem;
-		}
-
-		.score-value {
-			font-size: 1.1rem;
-		}
-	}
-</style>
