@@ -48,7 +48,7 @@ function formatScore(score) {
                             const brand = getBrand(cpu.name);
                             const series = getSeries(cpu.name);
                             const modelSlug = cpu.slug || slugify(cpu.name);
-                            const link = `/cpus/${slugify(brand)}/${slugify(series)}/${modelSlug}`;
+                            const link = `/cpus/${slugify(brand)}/${slugify(series)}/${modelSlug}/`;
                             const score =
                                 cpu.scores["NanoReview Final Score"] || "-";
                             const igpu = formatScore(

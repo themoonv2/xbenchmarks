@@ -47,7 +47,7 @@ function formatScore(score) {
                             const brand = getBrand(gpu.name);
                             const series = getSeries(gpu.name);
                             const modelSlug = gpu.slug || slugify(gpu.name);
-                            const link = `/gpus/${slugify(brand)}/${slugify(series)}/${modelSlug}`;
+                            const link = `/gpus/${slugify(brand)}/${slugify(series)}/${modelSlug}/`;
                             const score =
                                 gpu.scores["NanoReview Final Score"] || "-";
                             const gaming = formatScore(gpu.scores["Gaming"]);
