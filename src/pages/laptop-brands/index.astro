@@ -31,13 +31,13 @@ const brands = Array.from(brandMap.values()).sort();
     <div class="brands-container">
         {
             brands.map((brand) => {
-                const brandUrl = `${import.meta.env.BASE_URL}/laptop-brands/${slugify(brand)}`;
+                const brandUrl = `/laptop-brands/${slugify(brand)}`;
                 return (
                     <div class="brand-card">
                         <a href={brandUrl} class="logo-link">
                             <div class="logo-container">
                                 <img
-                                    src={`${import.meta.env.BASE_URL}/brands/${brand.toLowerCase()}-brand.png`}
+                                    src={`/brands/${brand.toLowerCase()}-brand.png`}
                                     alt={`${brand} Logo`}
                                     loading="lazy"
                                     onerror="this.style.display='none'"

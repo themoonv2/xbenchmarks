@@ -48,7 +48,7 @@ function formatScore(score) {
                             const brand = getBrand(cpu.name);
                             const series = getSeries(cpu.name);
                             const modelSlug = cpu.slug || slugify(cpu.name);
-                            const link = `${import.meta.env.BASE_URL}/cpus/${slugify(brand)}/${slugify(series)}/${modelSlug}`;
+                            const link = `/cpus/${slugify(brand)}/${slugify(series)}/${modelSlug}`;
                             const score =
                                 cpu.scores["NanoReview Final Score"] || "-";
                             const igpu = formatScore(
@@ -86,7 +86,7 @@ function formatScore(score) {
                                     <td class="thumb-col">
                                         {cpu.images?.main && (
                                             <img
-                                                src={getImageUrl(cpu.images.main, import.meta.env.BASE_URL)}
+                                                src={getImageUrl(cpu.images.main, '')}
                                                 alt={cpu.name}
                                                 class="thumbnail"
                                             />
