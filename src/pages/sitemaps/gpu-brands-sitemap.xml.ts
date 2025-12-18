@@ -12,7 +12,7 @@ export async function GET() {
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   ${brands.map(brand => `
   <url>
-    <loc>${baseUrl}/gpus/${brand}</loc>
+    <loc>${baseUrl}/gpus/${brand}/</loc>
     <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>

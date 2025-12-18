@@ -10,7 +10,7 @@ export async function GET() {
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   ${comparisons.map(comp => `
   <url>
-    <loc>${baseUrl}/compare/cpu/${comp.id}</loc>
+    <loc>${baseUrl}/compare/cpu/${comp.id}/</loc>
     <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>

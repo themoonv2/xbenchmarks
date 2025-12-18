@@ -9,7 +9,7 @@ export async function GET() {
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   ${cpusData.map(cpu => `
   <url>
-    <loc>${baseUrl}/cpus/${cpu.slug.split('-')[0]}/${cpu.slug.split('-')[1]}/${cpu.slug}</loc>
+    <loc>${baseUrl}/cpus/${cpu.slug.split('-')[0]}/${cpu.slug.split('-')[1]}/${cpu.slug}/</loc>
     <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>

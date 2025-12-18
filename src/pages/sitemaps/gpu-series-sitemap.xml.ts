@@ -17,7 +17,7 @@ export async function GET() {
     const parts = serie.split('-');
     return `
   <url>
-    <loc>${baseUrl}/gpus/${parts[0]}/${parts[1]}</loc>
+    <loc>${baseUrl}/gpus/${parts[0]}/${parts[1]}/</loc>
     <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
